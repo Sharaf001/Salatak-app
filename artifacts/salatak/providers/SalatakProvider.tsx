@@ -10,6 +10,7 @@ export type SalatakState = {
   tasbihCount: number;
   tasbihTarget: number;
   readAzkar: string[];
+  notificationsEnabled: boolean;
 };
 
 type SalatakContextValue = SalatakState & {
@@ -24,6 +25,7 @@ type SalatakContextValue = SalatakState & {
   setTasbihTarget: (target: number) => void;
   toggleAzkarRead: (itemId: string) => void;
   isAzkarRead: (itemId: string) => boolean;
+  toggleNotifications: () => void;
 };
 
 const initialState: SalatakState = {
@@ -33,6 +35,7 @@ const initialState: SalatakState = {
   tasbihCount: 0,
   tasbihTarget: 33,
   readAzkar: [],
+  notificationsEnabled: true,
 };
 
 const SalatakContext = createContext<SalatakContextValue | null>(null);
@@ -92,6 +95,7 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
         persist({ ...state, readAzkar });
       },
       isAzkarRead: (itemId) => state.readAzkar.includes(itemId),
+      toggleNotifications: () => persist({ ...state, notificationsEnabled: !state.notificationsEnabled }),
     }),
     [isReady, state],
   );

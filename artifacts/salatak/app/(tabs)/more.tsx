@@ -6,6 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
+import { notificationsSupported } from '@/hooks/usePrayerNotifications';
 
 function ToolRow({
   icon,
@@ -33,7 +34,7 @@ function ToolRow({
 export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { rakahCount, incrementRakah, resetRakah, bookmarks } = useSalatak();
+  const { rakahCount, incrementRakah, resetRakah, bookmarks, notificationsEnabled, toggleNotifications } = useSalatak();
 
   const countRakah = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -86,7 +87,25 @@ export default function MoreScreen() {
 
         <Text style={[styles.sectionTitle, { color: colors.deep, marginTop: 25 }]}>الإعدادات</Text>
         <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.settingRow}><View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Ionicons name="notifications-outline" size={18} color={colors.primary} /></View><Text style={[styles.settingText, { color: colors.deep }]}>تنبيهات الصلاة</Text><View style={[styles.statusPill, { backgroundColor: '#E4EEE9' }]}><Text style={[styles.statusText, { color: colors.success }]}>مفعّلة</Text></View></View>
+          <Pressable
+            onPress={() => {
+              if (!notificationsSupported) {
+                Alert.alert('يتطلب بناء تطوير', 'تنبيهات الصلاة تحتاج نسخة "development build" من التطبيق ولا تعمل داخل Expo Go على أندرويد. راسلنا للمزيد من التفاصيل.');
+                return;
+              }
+              void Haptics.selectionAsync();
+              toggleNotifications();
+            }}
+            style={styles.settingRow}
+          >
+            <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Ionicons name="notifications-outline" size={18} color={colors.primary} /></View>
+            <Text style={[styles.settingText, { color: colors.deep }]}>تنبيهات الصلاة</Text>
+            <View style={[styles.statusPill, { backgroundColor: !notificationsSupported ? '#F1E5E5' : notificationsEnabled ? '#E4EEE9' : '#F1E5E5' }]}>
+              <Text style={[styles.statusText, { color: !notificationsSupported ? colors.mutedForeground : notificationsEnabled ? colors.success : colors.mutedForeground }]}>
+                {!notificationsSupported ? 'غير متاحة' : notificationsEnabled ? 'مفعّلة' : 'متوقفة'}
+              </Text>
+            </View>
+          </Pressable>
           <View style={styles.settingRow}><View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Feather name="map-pin" size={17} color={colors.primary} /></View><Text style={[styles.settingText, { color: colors.deep }]}>الموقع</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>بيروت</Text></View>
         </View>
       </ScrollView>

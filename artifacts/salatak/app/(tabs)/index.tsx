@@ -1,6 +1,6 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -12,14 +12,59 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
+import { usePrayerTimes, type PrayerId } from '@/hooks/usePrayerTimes';
+import { usePrayerNotifications } from '@/hooks/usePrayerNotifications';
+import { formatHijriDate, toArabicIndicDigits } from '@/hooks/useHijriDate';
 
-const prayers = [
-  { id: 'fajr', name: 'الفجر', english: 'Fajr', time: '04:38', icon: 'sunrise' as const },
-  { id: 'dhuhr', name: 'الظهر', english: 'Dhuhr', time: '12:43', icon: 'sun' as const },
-  { id: 'asr', name: 'العصر', english: 'Asr', time: '16:18', icon: 'cloud' as const },
-  { id: 'maghrib', name: 'المغرب', english: 'Maghrib', time: '19:21', icon: 'sunset' as const },
-  { id: 'isha', name: 'العشاء', english: 'Isha', time: '20:42', icon: 'moon' as const },
+const PRAYER_META: Record<PrayerId, { name: string; english: string; icon: keyof typeof Feather.glyphMap }> = {
+  fajr: { name: 'الفجر', english: 'Fajr', icon: 'sunrise' },
+  dhuhr: { name: 'الظهر', english: 'Dhuhr', icon: 'sun' },
+  asr: { name: 'العصر', english: 'Asr', icon: 'cloud' },
+  maghrib: { name: 'المغرب', english: 'Maghrib', icon: 'sunset' },
+  isha: { name: 'العشاء', english: 'Isha', icon: 'moon' },
+};
+const PRAYER_ORDER: PrayerId[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+
+// Bundled fallback — used until location permission is granted / resolved,
+// or if it's ever denied. Beirut coordinates, matching this app's original
+// default city.
+const FALLBACK_TIMES: Record<PrayerId, string> = {
+  fajr: '04:38',
+  dhuhr: '12:43',
+  asr: '16:18',
+  maghrib: '19:21',
+  isha: '20:42',
+};
+const FALLBACK_LOCATION = 'بيروت، لبنان';
+const FALLBACK_SUNSET = '18:59';
+
+const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const GREGORIAN_MONTHS = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ];
+
+function formatGregorianArabic(date: Date): string {
+  const weekday = WEEKDAYS[date.getDay()];
+  const day = toArabicIndicDigits(date.getDate());
+  const month = GREGORIAN_MONTHS[date.getMonth()];
+  const year = toArabicIndicDigits(date.getFullYear());
+  return `${weekday}، ${day} ${month} ${year}`;
+}
+
+function formatClock(date: Date): string {
+  const h = String(date.getHours()).padStart(2, '0');
+  const m = String(date.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+function formatCountdown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSeconds % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
 
 function SectionTitle({
   title,
@@ -47,8 +92,46 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { completedPrayers, togglePrayer } = useSalatak();
+  const { completedPrayers, togglePrayer, notificationsEnabled } = useSalatak();
+
+  // Ticks every second so the countdown and "which prayer is next" stay live
+  // without the person needing to reopen the screen.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const { today, sunset, nextPrayer, locationLabel, coords } = usePrayerTimes(now);
+  usePrayerNotifications(coords, notificationsEnabled);
+
+  const prayers = PRAYER_ORDER.map((id) => ({
+    id,
+    ...PRAYER_META[id],
+    time: today ? formatClock(today[id]) : FALLBACK_TIMES[id],
+  }));
   const completedCount = prayers.filter((prayer) => completedPrayers[prayer.id]).length;
+
+  const nextId: PrayerId = nextPrayer?.id ?? 'maghrib';
+  const nextMeta = PRAYER_META[nextId];
+  const nextTimeLabel = nextPrayer ? formatClock(nextPrayer.time) : FALLBACK_TIMES.maghrib;
+  const countdownLabel = nextPrayer ? formatCountdown(nextPrayer.time.getTime() - now.getTime()) : '--:--:--';
+  const sunsetLabel = sunset ? formatClock(sunset) : FALLBACK_SUNSET;
+  const locationText = coords ? (locationLabel ?? 'موقعك الحالي') : FALLBACK_LOCATION;
+
+  // Progress through the gap between the previous and next prayer, for the
+  // progress bar under the countdown. Falls back to a fixed value when we
+  // don't have real prayer times yet.
+  let progressPercent = 58;
+  if (today && nextPrayer) {
+    const order = PRAYER_ORDER;
+    const nextIndex = order.indexOf(nextId);
+    const prevId = nextIndex > 0 ? order[nextIndex - 1] : null;
+    const prevTime = prevId ? today[prevId].getTime() : nextPrayer.time.getTime() - 6 * 60 * 60 * 1000;
+    const span = nextPrayer.time.getTime() - prevTime;
+    const elapsed = now.getTime() - prevTime;
+    progressPercent = span > 0 ? Math.min(100, Math.max(0, Math.round((elapsed / span) * 100))) : 0;
+  }
 
   const open = (route: '/quran' | '/duas' | '/more') => {
     router.push(route);
@@ -67,7 +150,7 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={[styles.kicker, { color: colors.deepMuted }]}>الأربعاء، ٢٣ سبتمبر ٢٠٢٦</Text>
+            <Text style={[styles.kicker, { color: colors.deepMuted }]}>{formatGregorianArabic(now)}</Text>
             <Text style={[styles.greeting, { color: colors.deep }]}>السلام عليكم</Text>
             <Text style={[styles.subGreeting, { color: colors.mutedForeground }]}>نسأل الله أن يتقبل طاعتكم</Text>
           </View>
@@ -78,9 +161,9 @@ export default function HomeScreen() {
 
         <View style={[styles.locationRow, { backgroundColor: colors.secondary }]}>
           <Ionicons name="location-outline" size={16} color={colors.primary} />
-          <Text style={[styles.locationText, { color: colors.deepMuted }]}>بيروت، لبنان</Text>
+          <Text style={[styles.locationText, { color: colors.deepMuted }]}>{locationText}</Text>
           <View style={styles.locationSpacer} />
-          <Text style={[styles.hijriText, { color: colors.primary }]}>١ ربيع الآخر ١٤٤٨</Text>
+          <Text style={[styles.hijriText, { color: colors.primary }]}>{formatHijriDate(now)}</Text>
           <Feather name="chevron-left" size={15} color={colors.primary} />
         </View>
 
@@ -88,22 +171,21 @@ export default function HomeScreen() {
           <View style={styles.nextPrayerTop}>
             <View>
               <Text style={styles.nextLabel}>الصلاة القادمة</Text>
-              <Text style={styles.nextName}>المغرب <Text style={styles.nextEnglish}>Maghrib</Text></Text>
+              <Text style={styles.nextName}>{nextMeta.name} <Text style={styles.nextEnglish}>{nextMeta.english}</Text></Text>
             </View>
             <View style={styles.countdownPill}>
-              <Text style={[styles.countdownValue, { color: colors.deep }]}>02:14:08</Text>
+              <Text style={[styles.countdownValue, { color: colors.deep }]}>{countdownLabel}</Text>
               <Text style={[styles.countdownCaption, { color: colors.deepMuted }]}>متبقي</Text>
             </View>
           </View>
           <View style={styles.nextPrayerBottom}>
             <View style={styles.nextTimeWrap}>
-              <Text style={styles.nextTime}>19:21</Text>
-              <Text style={styles.nextTimePeriod}>PM</Text>
+              <Text style={styles.nextTime}>{nextTimeLabel}</Text>
             </View>
             <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { backgroundColor: colors.gold, width: '58%' }]} />
+              <View style={[styles.progressFill, { backgroundColor: colors.gold, width: `${progressPercent}%` }]} />
             </View>
-            <Text style={styles.sunsetText}>غروب الشمس 18:59</Text>
+            <Text style={styles.sunsetText}>غروب الشمس {sunsetLabel}</Text>
           </View>
         </View>
 
@@ -111,7 +193,7 @@ export default function HomeScreen() {
         <View style={[styles.prayerList, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {prayers.map((prayer, index) => {
             const isCompleted = completedPrayers[prayer.id];
-            const isNext = prayer.id === 'maghrib';
+            const isNext = prayer.id === nextId;
             return (
               <Pressable
                 key={prayer.id}
@@ -159,7 +241,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={[styles.quoteCard, { backgroundColor: colors.coral }]}>
-          <Text style={styles.quoteMark}>“</Text>
+          <Text style={styles.quoteMark}>"</Text>
           <Text style={styles.quoteText}>ألا بذكر الله تطمئن القلوب</Text>
           <Text style={styles.quoteSource}>الرعد · ٢٨</Text>
         </View>
