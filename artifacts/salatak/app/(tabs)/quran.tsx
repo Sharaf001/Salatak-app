@@ -144,6 +144,34 @@ const SURAH_INDEX = [
   { n: 114, id: 'surah-114', number: "١١٤", name: "الناس", english: "An-Nas", verses: 6, type: "مكية", excerpt: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ" },
 ];
 
+// --- Reader preparation -----------------------------------------------------
+// Bismillah is shown once as a header for every surah except Al-Fatiha (where it
+// is verse 1) and At-Tawbah (which has none). Some data sources glue it onto
+// verse 1 or add it as its own entry, so we strip any copy first and then
+// number the real verses from 1.
+const BASMALA_TEXT = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
+const BASMALA_WORDS = ['بسم', 'الله', 'الرحمن', 'الرحيم'];
+function plainArabic(word: string): string {
+  return word
+    .replace(/[\u0640\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF]/g, '')
+    .replace(/[ٱأإآ]/g, 'ا')
+    .replace(/[یى]/g, 'ي');
+}
+function prepareReader(n: number, raw: string[]): { bismillah: boolean; verses: string[] } {
+  if (n === 1 || raw === PLACEHOLDER_READER_VERSES || raw.length === 0) {
+    return { bismillah: false, verses: raw };
+  }
+  const verses = raw.slice();
+  const words = verses[0].trim().split(/\s+/);
+  const startsWithBasmala = BASMALA_WORDS.every((w, i) => words[i] !== undefined && plainArabic(words[i]) === w);
+  if (startsWithBasmala) {
+    const rest = words.slice(4).join(' ').trim();
+    if (rest) verses[0] = rest;
+    else verses.shift();
+  }
+  return { bismillah: n !== 9, verses };
+}
+
 export default function QuranScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -169,6 +197,9 @@ export default function QuranScreen() {
     [query, surahs],
   );
   const selected = surahs.find((surah) => surah.id === selectedId);
+  const reader = selected
+    ? prepareReader(Number(selected.id.replace('surah-', '')), selected.readerVerses)
+    : { bismillah: false, verses: [] as string[] };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
@@ -210,8 +241,9 @@ export default function QuranScreen() {
               </Pressable>
             </View>
             <View style={styles.verseList}>
-              {selected.readerVerses.map((verse, index) => (
-                <View key={verse} style={styles.verseRow}>
+              {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
+              {reader.verses.map((verse, index) => (
+                <View key={index} style={styles.verseRow}>
                   <Text style={styles.verseNumber}>{index + 1}</Text>
                   <Text style={styles.verseText}>{verse}</Text>
                 </View>
@@ -295,6 +327,7 @@ const styles = StyleSheet.create({
   readerSurah: { color: '#FFF9ED', fontSize: 23, fontWeight: '700' },
   readerMeta: { color: '#9EBBB4', fontSize: 11, marginTop: 3 },
   verseList: { marginTop: 22 },
+  bismillah: { color: '#E8C77D', fontSize: 23, lineHeight: 40, textAlign: 'center', paddingVertical: 14 },
   verseRow: { flexDirection: 'row-reverse', alignItems: 'flex-start', paddingVertical: 13, borderBottomColor: '#376762', borderBottomWidth: StyleSheet.hairlineWidth },
   verseNumber: { color: '#D7A84C', fontSize: 12, width: 22, textAlign: 'center', marginTop: 5 },
   verseText: { color: '#FFF9ED', fontSize: 19, lineHeight: 35, textAlign: 'right', flex: 1 },
