@@ -1,5 +1,5 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { Href, router } from 'expo-router';
 import React from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -60,7 +60,7 @@ export default function MoreScreen() {
 
         <Text style={[styles.sectionTitle, { color: colors.deep }]}>أدوات العبادة</Text>
         <View style={[styles.toolGroup, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <ToolRow icon="calendar" title="التقويم الهجري" subtitle="١ ربيع الآخر ١٤٤٨" accent="#F3E5C5" onPress={() => Alert.alert('التقويم الهجري', 'اليوم الأربعاء، ٢٣ سبتمبر ٢٠٢٦ يوافق ١ ربيع الآخر ١٤٤٨.')} />
+          <ToolRow icon="calendar" title="التقويم الهجري" subtitle="عرض الشهر وأيامه" accent="#F3E5C5" onPress={() => router.push('/hijri-calendar' as Href)} />
           <ToolRow icon="hash" title="عداد الركعات" subtitle={`${rakahCount} ركعات مسجلة اليوم`} onPress={countRakah} />
           <ToolRow icon="bookmark" title="المحفوظات" subtitle={`${bookmarks.length} عناصر محفوظة`} onPress={() => Alert.alert('المحفوظات', 'ستجد هنا السور والأدعية التي حفظتها للرجوع إليها بسرعة.')} />
           <ToolRow icon="compass" title="اتجاه القبلة" subtitle="اضبط موقعك لمعرفة الاتجاه" onPress={() => Alert.alert('اتجاه القبلة', 'ميزة تحديد اتجاه القبلة ستستخدم موقع جهازك عند تفعيلها.')} />
