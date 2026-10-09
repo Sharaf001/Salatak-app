@@ -8,6 +8,10 @@ import { useColors } from '@/hooks/useColors';
 import { getQiblaBearing, getRelativeBearing } from '@/lib/qibla';
 import { ErrorFallback } from '@/components/ErrorFallback';
 
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  return <ErrorFallback error={error} resetError={retry} />;
+}
+
 export default function QiblaScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -26,10 +30,6 @@ export default function QiblaScreen() {
         const permission = await Location.requestForegroundPermissionsAsync();
         if (permission.status !== 'granted') {
           throw new Error('يلزم السماح بالوصول إلى الموقع لحساب اتجاه القبلة.');
-        }
-
-        export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
-          return <ErrorFallback error={error} resetError={retry} />;
         }
 
         const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
