@@ -8,14 +8,15 @@ import { useWallpapers } from '@workspace/api-client-react';
 
 const categories = ['الكل', 'المراقد المقدسة', 'مناسبات'];
 
-// Bundled offline content — see the comment in duas.tsx for why this exists.
+// Bundled offline content uses named Wikimedia Commons artwork rather than
+// generated placeholders. Keep these URLs in sync with lib/db/src/seed.ts.
 const FALLBACK_WALLPAPERS = [
-  { id: 'wp-1', category: 'المراقد المقدسة', title: 'مقام كربلاء', imageUrl: 'https://picsum.photos/seed/salatak-shrine-1/400/600' },
-  { id: 'wp-2', category: 'المراقد المقدسة', title: 'مقام النجف', imageUrl: 'https://picsum.photos/seed/salatak-shrine-2/400/600' },
-  { id: 'wp-3', category: 'مناسبات', title: 'ليالي رمضان', imageUrl: 'https://picsum.photos/seed/salatak-ramadan-1/400/600' },
-  { id: 'wp-4', category: 'مناسبات', title: 'ليلة القدر', imageUrl: 'https://picsum.photos/seed/salatak-ramadan-2/400/600' },
-  { id: 'wp-5', category: 'المراقد المقدسة', title: 'الحرم العباسي', imageUrl: 'https://picsum.photos/seed/salatak-shrine-3/400/600' },
-  { id: 'wp-6', category: 'مناسبات', title: 'عيد الفطر', imageUrl: 'https://picsum.photos/seed/salatak-eid-1/400/600' },
+  { id: 'wp-1', category: 'المراقد المقدسة', title: 'مقام كربلاء', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Kerbela_Hussein_Moschee.jpg' },
+  { id: 'wp-2', category: 'المراقد المقدسة', title: 'مقام النجف', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Shrine_of_Imam_Ali_Najaf_August_2023.jpg' },
+  { id: 'wp-3', category: 'مناسبات', title: 'ليالي رمضان', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/80/17th_of_Ramadan_Mosque_night.png' },
+  { id: 'wp-4', category: 'مناسبات', title: 'ليلة القدر', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Laylat_al-Qadr_%28mosque%29.svg' },
+  { id: 'wp-5', category: 'المراقد المقدسة', title: 'الحرم العباسي', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7d/Abbas_ibn_Ali_Shrine%2C_Qajar.jpg' },
+  { id: 'wp-6', category: 'مناسبات', title: 'عيد الفطر', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/Jeonju_Mosque_during_Eid_al-Fitr_2026_6.jpg' },
 ];
 
 export default function WallpapersScreen() {

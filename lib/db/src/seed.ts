@@ -7,6 +7,9 @@
  *
  * Safe to re-run: each row is upserted by its unique `slug`.
  */
+import { config } from "dotenv";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
 import { db, pool } from "./index";
 import {
@@ -21,6 +24,8 @@ import {
   type InsertZiyarat,
   type InsertWallpaper,
 } from "./schema/content";
+
+config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
 // Verse text comes from artifacts/salatak/data/quran-verses.json — the same
 // file the app reads. Fill it with the complete Quran by running
@@ -208,13 +213,15 @@ const ziyarat: InsertZiyarat[] = [
   { slug: "ziyarat-friday", category: "أيام الأسبوع", title: "زيارة يوم الجمعة", excerpt: "مخصصة للإمام المهدي (عج)" },
 ];
 
+// Artwork sources: Wikimedia Commons file pages and their original uploads.
+// These URLs are intentionally stable named files, not generated placeholders.
 const wallpapers: InsertWallpaper[] = [
-  { slug: "wp-1", category: "المراقد المقدسة", title: "مقام كربلاء", imageUrl: "https://picsum.photos/seed/salatak-shrine-1/400/600" },
-  { slug: "wp-2", category: "المراقد المقدسة", title: "مقام النجف", imageUrl: "https://picsum.photos/seed/salatak-shrine-2/400/600" },
-  { slug: "wp-3", category: "مناسبات", title: "ليالي رمضان", imageUrl: "https://picsum.photos/seed/salatak-ramadan-1/400/600" },
-  { slug: "wp-4", category: "مناسبات", title: "ليلة القدر", imageUrl: "https://picsum.photos/seed/salatak-ramadan-2/400/600" },
-  { slug: "wp-5", category: "المراقد المقدسة", title: "الحرم العباسي", imageUrl: "https://picsum.photos/seed/salatak-shrine-3/400/600" },
-  { slug: "wp-6", category: "مناسبات", title: "عيد الفطر", imageUrl: "https://picsum.photos/seed/salatak-eid-1/400/600" },
+  { slug: "wp-1", category: "المراقد المقدسة", title: "مقام كربلاء", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/4f/Kerbela_Hussein_Moschee.jpg" },
+  { slug: "wp-2", category: "المراقد المقدسة", title: "مقام النجف", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/69/Shrine_of_Imam_Ali_Najaf_August_2023.jpg" },
+  { slug: "wp-3", category: "مناسبات", title: "ليالي رمضان", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/8/80/17th_of_Ramadan_Mosque_night.png" },
+  { slug: "wp-4", category: "مناسبات", title: "ليلة القدر", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Laylat_al-Qadr_%28mosque%29.svg" },
+  { slug: "wp-5", category: "المراقد المقدسة", title: "الحرم العباسي", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/7/7d/Abbas_ibn_Ali_Shrine%2C_Qajar.jpg" },
+  { slug: "wp-6", category: "مناسبات", title: "عيد الفطر", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Jeonju_Mosque_during_Eid_al-Fitr_2026_6.jpg" },
 ];
 
 // Simple "replace all" seeding: clears each table and re-inserts. Safe to

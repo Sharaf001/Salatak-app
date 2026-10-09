@@ -15,12 +15,11 @@ import quranVerses from '@/data/quran-verses.json';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 
-// Verse text lives in data/quran-verses.json (not in this file). Run
-// `node scripts/download-quran.mjs` once to fill it with the complete Quran.
-// Surahs missing from that file show a short "not added yet" note instead.
+// Verse text lives in data/quran-verses.json and is generated from the
+// validated Al Quran Cloud Uthmani edition by scripts/download-quran.mjs.
 const QURAN_VERSES = quranVerses as Record<string, string[]>;
 const PLACEHOLDER_READER_VERSES = [
-  'نص هذه السورة لم يُضَف بعد. شغّل سكربت تنزيل القرآن لإضافته.',
+  'تعذر تحميل نص هذه السورة. تحقق من ملف بيانات القرآن.',
 ];
 function versesFor(n: number): string[] {
   const list = QURAN_VERSES[String(n)];
