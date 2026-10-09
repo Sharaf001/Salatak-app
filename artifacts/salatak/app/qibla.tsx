@@ -1,33 +1,12 @@
 import { Feather } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { Magnetometer } from 'expo-sensors';
 import { router, Stack } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
-
-const KAABA = { latitude: 21.422487, longitude: 39.826206 };
-
-function getQiblaBearing(latitude: number, longitude: number): number {
-  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
-  const toDegrees = (radians: number) => (radians * 180) / Math.PI;
-  const latitudeRadians = toRadians(latitude);
-  const kaabaLatitudeRadians = toRadians(KAABA.latitude);
-  const longitudeDelta = toRadians(KAABA.longitude - longitude);
-  const bearing = toDegrees(
-    Math.atan2(
-      Math.sin(longitudeDelta),
-      Math.cos(latitudeRadians) * Math.tan(kaabaLatitudeRadians) -
-        Math.sin(latitudeRadians) * Math.cos(longitudeDelta),
-    ),
-  );
-  return (bearing + 360) % 360;
-}
-
-function getHeading(x: number, y: number): number {
-  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
-}
+import { getQiblaBearing, getRelativeBearing } from '@/lib/qibla';
+import { ErrorFallback } from '@/components/ErrorFallback';
 
 export default function QiblaScreen() {
   const colors = useColors();
@@ -36,11 +15,11 @@ export default function QiblaScreen() {
   const [heading, setHeading] = useState<number | null>(null);
   const [status, setStatus] = useState('جارٍ تحديد موقعك...');
   const [error, setError] = useState<string | null>(null);
-  const [hasMagnetometer, setHasMagnetometer] = useState(false);
+  const [headingAccuracy, setHeadingAccuracy] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    let subscription: ReturnType<typeof Magnetometer.addListener> | null = null;
+    let subscription: Location.LocationSubscription | null = null;
 
     const loadQibla = async () => {
       try {
@@ -49,20 +28,25 @@ export default function QiblaScreen() {
           throw new Error('يلزم السماح بالوصول إلى الموقع لحساب اتجاه القبلة.');
         }
 
+        export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+          return <ErrorFallback error={error} resetError={retry} />;
+        }
+
         const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
         if (cancelled) return;
         setQiblaBearing(getQiblaBearing(position.coords.latitude, position.coords.longitude));
         setStatus('وجّه هاتفك نحو السهم لمعرفة اتجاه القبلة.');
 
-        if (Platform.OS === 'web' || !(await Magnetometer.isAvailableAsync())) {
+        if (Platform.OS === 'web') {
           setError('البوصلة الحية غير متاحة على هذا الجهاز. الاتجاه المحسوب أدناه يعتمد على الشمال الجغرافي.');
           return;
         }
 
-        setHasMagnetometer(true);
-        Magnetometer.setUpdateInterval(250);
-        subscription = Magnetometer.addListener(({ x, y }) => {
-          if (!cancelled) setHeading(getHeading(x, y));
+        subscription = await Location.watchHeadingAsync((reading) => {
+          if (cancelled) return;
+          const nextHeading = reading.trueHeading >= 0 ? reading.trueHeading : reading.magHeading;
+          setHeading(nextHeading);
+          setHeadingAccuracy(reading.accuracy);
         });
       } catch (cause) {
         if (!cancelled) {
@@ -80,7 +64,7 @@ export default function QiblaScreen() {
   }, []);
 
   const relativeBearing = useMemo(
-    () => (qiblaBearing === null || heading === null ? qiblaBearing : (qiblaBearing - heading + 360) % 360),
+    () => (qiblaBearing === null || heading === null ? qiblaBearing : getRelativeBearing(qiblaBearing, heading)),
     [heading, qiblaBearing],
   );
   const arrowRotation = relativeBearing === null ? '0deg' : `${relativeBearing}deg`;
@@ -115,7 +99,13 @@ export default function QiblaScreen() {
         </View>
 
         {error ? <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text> : null}
-        {hasMagnetometer && heading === null ? (
+        {Platform.OS !== 'web' && headingAccuracy !== null && headingAccuracy < 0 ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>حرّك الهاتف بشكل دائري لمعايرة البوصلة قبل الاعتماد على الاتجاه.</Text>
+        ) : null}
+        {Platform.OS !== 'web' && heading !== null && headingAccuracy !== null && headingAccuracy >= 0 ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>دقة البوصلة: {headingAccuracy === 3 ? 'منخفضة' : headingAccuracy === 2 ? 'متوسطة' : 'جيدة'}</Text>
+        ) : null}
+        {Platform.OS !== 'web' && heading === null ? (
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>حرّك الهاتف بشكل دائري لمعايرة البوصلة.</Text>
         ) : null}
       </View>

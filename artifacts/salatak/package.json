@@ -8,6 +8,7 @@
     "dev:local": "pnpm exec expo start",
     "dev:android": "pnpm exec expo run:android",
     "dev:ios": "pnpm exec expo run:ios",
+    "test": "pnpm exec tsx --test tests/qibla.test.ts",
     "build": "node scripts/build.js",
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -30,6 +31,7 @@
     "expo-blur": "~57.0.2",
     "expo-constants": "~57.0.6",
     "expo-font": "~57.0.1",
+    "expo-file-system": "~57.0.7",
     "expo-glass-effect": "~57.0.1",
     "expo-haptics": "~57.0.1",
     "expo-image": "~57.0.1",
@@ -38,6 +40,7 @@
     "expo-linking": "~57.0.3",
     "expo-location": "~57.0.5",
     "expo-notifications": "~0.32.12",
+    "expo-media-library": "~18.2.0",
     "expo-router": "~57.0.7",
     "expo-splash-screen": "~57.0.4",
     "expo-sensors": "~57.0.1",

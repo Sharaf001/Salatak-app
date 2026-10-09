@@ -1,10 +1,13 @@
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as MediaLibrary from 'expo-media-library';
 import { router, Stack } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWallpapers } from '@workspace/api-client-react';
+import { ErrorFallback } from '@/components/ErrorFallback';
 
 const categories = ['الكل', 'المراقد المقدسة', 'مناسبات'];
 
@@ -14,7 +17,7 @@ const FALLBACK_WALLPAPERS = [
   { id: 'wp-1', category: 'المراقد المقدسة', title: 'مقام كربلاء', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Kerbela_Hussein_Moschee.jpg' },
   { id: 'wp-2', category: 'المراقد المقدسة', title: 'مقام النجف', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Shrine_of_Imam_Ali_Najaf_August_2023.jpg' },
   { id: 'wp-3', category: 'مناسبات', title: 'ليالي رمضان', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/80/17th_of_Ramadan_Mosque_night.png' },
-  { id: 'wp-4', category: 'مناسبات', title: 'ليلة القدر', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Laylat_al-Qadr_%28mosque%29.svg' },
+  { id: 'wp-4', category: 'مناسبات', title: 'ليلة القدر', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Ramadan_lantern_with_quran.jpg' },
   { id: 'wp-5', category: 'المراقد المقدسة', title: 'الحرم العباسي', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7d/Abbas_ibn_Ali_Shrine%2C_Qajar.jpg' },
   { id: 'wp-6', category: 'مناسبات', title: 'عيد الفطر', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/Jeonju_Mosque_during_Eid_al-Fitr_2026_6.jpg' },
 ];
@@ -22,9 +25,37 @@ const FALLBACK_WALLPAPERS = [
 export default function WallpapersScreen() {
   const insets = useSafeAreaInsets();
   const [activeCategory, setActiveCategory] = useState('الكل');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadedIds, setDownloadedIds] = useState<Set<string>>(new Set());
   const { data } = useWallpapers();
   const wallpapers = Array.isArray(data) && data.length > 0 ? data.map((w) => ({ id: w.slug, category: w.category, title: w.title, imageUrl: w.imageUrl })) : FALLBACK_WALLPAPERS;
   const visible = activeCategory === 'الكل' ? wallpapers : wallpapers.filter((item) => item.category === activeCategory);
+
+  const downloadWallpaper = async (id: string, imageUrl: string, title: string) => {
+    try {
+      setDownloadingId(id);
+      if (Platform.OS === 'web') {
+        await Linking.openURL(imageUrl);
+        return;
+      }
+      const permission = await MediaLibrary.requestPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('الإذن مطلوب', 'اسمح للتطبيق بالوصول إلى الصور لحفظ الخلفية.');
+        return;
+      }
+      const extension = imageUrl.toLowerCase().includes('.png') ? 'png' : 'jpg';
+      const localUri = `${FileSystem.cacheDirectory}salatak-${id}.${extension}`;
+      const result = await FileSystem.downloadAsync(imageUrl, localUri);
+      await MediaLibrary.createAssetAsync(result.uri);
+      setDownloadedIds((current) => new Set(current).add(id));
+      Alert.alert('تم الحفظ', `تم حفظ «${title}» في صور جهازك.`);
+    } catch (error) {
+      console.error('Failed to download wallpaper:', error);
+      Alert.alert('تعذر الحفظ', 'تعذر حفظ الخلفية الآن. تحقق من اتصالك ومساحة التخزين ثم حاول مرة أخرى.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -58,13 +89,13 @@ export default function WallpapersScreen() {
 
         <View style={styles.grid}>
           {visible.map((item) => (
-            <Pressable key={item.id} style={styles.tile}>
+            <Pressable key={item.id} style={styles.tile} onPress={() => void downloadWallpaper(item.id, item.imageUrl, item.title)}>
               <Image source={{ uri: item.imageUrl }} style={styles.image} contentFit="cover" transition={200} />
               <View style={styles.overlay}>
                 <Text style={styles.tileTitle}>{item.title}</Text>
               </View>
               <View style={styles.downloadBadge}>
-                <Feather name="download" size={13} color="#FFFFFF" />
+                <Feather name={downloadingId === item.id ? 'loader' : downloadedIds.has(item.id) ? 'check' : 'download'} size={13} color="#FFFFFF" />
               </View>
             </Pressable>
           ))}
@@ -72,6 +103,10 @@ export default function WallpapersScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  return <ErrorFallback error={error} resetError={retry} />;
 }
 
 const styles = StyleSheet.create({

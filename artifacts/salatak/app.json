@@ -17,6 +17,7 @@
     "plugins": [
       "expo-router",
       "expo-notifications",
+      "expo-media-library",
       [
         "expo-location",
         {

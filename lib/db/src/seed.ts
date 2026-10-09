@@ -219,7 +219,7 @@ const wallpapers: InsertWallpaper[] = [
   { slug: "wp-1", category: "المراقد المقدسة", title: "مقام كربلاء", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/4f/Kerbela_Hussein_Moschee.jpg" },
   { slug: "wp-2", category: "المراقد المقدسة", title: "مقام النجف", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/69/Shrine_of_Imam_Ali_Najaf_August_2023.jpg" },
   { slug: "wp-3", category: "مناسبات", title: "ليالي رمضان", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/8/80/17th_of_Ramadan_Mosque_night.png" },
-  { slug: "wp-4", category: "مناسبات", title: "ليلة القدر", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Laylat_al-Qadr_%28mosque%29.svg" },
+  { slug: "wp-4", category: "مناسبات", title: "ليلة القدر", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/bc/Ramadan_lantern_with_quran.jpg" },
   { slug: "wp-5", category: "المراقد المقدسة", title: "الحرم العباسي", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/7/7d/Abbas_ibn_Ali_Shrine%2C_Qajar.jpg" },
   { slug: "wp-6", category: "مناسبات", title: "عيد الفطر", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Jeonju_Mosque_during_Eid_al-Fitr_2026_6.jpg" },
 ];
