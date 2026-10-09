@@ -10,16 +10,26 @@ import { useSalatak } from '@/providers/SalatakProvider';
 
 const categories = ['الكل', 'عامة', 'أيام الأسبوع'];
 
-// Bundled offline content — see the comment in duas.tsx for why this exists.
+// Bundled offline content — verified against the Arabic ziyarat texts listed
+// by al-islam.org's Islamic Supplication Browser. Keep this list in sync with
+// lib/db/src/seed.ts.
 const FALLBACK_ZIYARAT = [
   { id: 'ziyarat-hussain', category: 'عامة', title: 'زيارة الإمام الحسين (ع)', excerpt: 'السلام عليك يا أبا عبد الله، السلام عليك يا ابن رسول الله...' },
   { id: 'ziyarat-nabi', category: 'عامة', title: 'زيارة النبي الأكرم (ص)', excerpt: 'السلام عليك أيها النبي ورحمة الله وبركاته، السلام عليك يا رسول الله...' },
   { id: 'ziyarat-abbas', category: 'عامة', title: 'زيارة العباس (ع)', excerpt: 'السلام عليك أيها العبد الصالح، المطيع لله ولرسوله...' },
   { id: 'ziyarat-al-yasin', category: 'عامة', title: 'زيارة آل ياسين', excerpt: 'السلام عليك يا داعي الله وربّاني آياته...' },
   { id: 'ziyarat-ashura', category: 'عامة', title: 'زيارة عاشوراء', excerpt: 'السلام عليك يا أبا عبد الله، السلام عليك وعلى الأرواح التي حلّت بفنائك...' },
-  { id: 'ziyarat-saturday', category: 'أيام الأسبوع', title: 'زيارة يوم السبت', excerpt: 'مخصصة للإمام علي بن أبي طالب (ع)' },
-  { id: 'ziyarat-sunday', category: 'أيام الأسبوع', title: 'زيارة يوم الأحد', excerpt: 'مخصصة للإمام الحسن بن علي (ع)' },
-  { id: 'ziyarat-thursday', category: 'أيام الأسبوع', title: 'زيارة يوم الخميس', excerpt: 'مخصصة للإمام موسى الكاظم (ع)' },
+  { id: 'ziyarat-amin-allah', category: 'عامة', title: 'زيارة أمين الله', excerpt: 'السلام عليك يا أمين الله في أرضه، وحجته على عباده، السلام عليك يا أمير المؤمنين...' },
+  { id: 'ziyarat-warith', category: 'عامة', title: 'زيارة وارث', excerpt: 'السلام عليك يا وارث آدم صفوة الله، السلام عليك يا وارث نوح نبي الله...' },
+  { id: 'ziyarat-jamia-kabira', category: 'عامة', title: 'الزيارة الجامعة الكبيرة', excerpt: 'السلام عليكم يا أهل بيت النبوة، وموضع الرسالة، ومختلف الملائكة، ومهبط الوحي...' },
+  { id: 'ziyarat-imam-rida', category: 'عامة', title: 'زيارة الإمام الرضا (ع)', excerpt: 'السلام عليك يا ولي الله، السلام عليك يا حجة الله، السلام عليك يا نور الله في ظلمات الأرض...' },
+  { id: 'ziyarat-saturday', category: 'أيام الأسبوع', title: 'زيارة يوم السبت', excerpt: 'مخصصة لرسول الله محمد (ص)' },
+  { id: 'ziyarat-sunday', category: 'أيام الأسبوع', title: 'زيارة يوم الأحد', excerpt: 'مخصصة لأمير المؤمنين علي بن أبي طالب (ع)' },
+  { id: 'ziyarat-monday', category: 'أيام الأسبوع', title: 'زيارة يوم الاثنين', excerpt: 'مخصصة للإمام الحسين والإمام زين العابدين (ع)' },
+  { id: 'ziyarat-tuesday', category: 'أيام الأسبوع', title: 'زيارة يوم الثلاثاء', excerpt: 'مخصصة للإمام محمد الباقر والإمام جعفر الصادق (ع)' },
+  { id: 'ziyarat-wednesday', category: 'أيام الأسبوع', title: 'زيارة يوم الأربعاء', excerpt: 'مخصصة للأئمة موسى الكاظم وعلي الرضا ومحمد الجواد وعلي الهادي والحسن العسكري (ع)' },
+  { id: 'ziyarat-thursday', category: 'أيام الأسبوع', title: 'زيارة يوم الخميس', excerpt: 'مخصصة للسيدة فاطمة الزهراء (ع)' },
+  { id: 'ziyarat-friday', category: 'أيام الأسبوع', title: 'زيارة يوم الجمعة', excerpt: 'مخصصة للإمام المهدي (عج)' },
 ];
 
 export default function ZiyaratScreen() {

@@ -9,15 +9,20 @@ import { useSalatak } from '@/providers/SalatakProvider';
 
 const categories = ['الكل', 'الصباح', 'المساء', 'الصلاة'];
 
-// Bundled offline content — used until the API responds, and whenever it's
-// unreachable (no DATABASE_URL configured, phone offline, etc). Edit here
-// for quick local changes, or edit the `duas` table in the DB for changes
-// that reach every user without an app update.
+// Bundled offline content — verified against the Arabic prayer texts in
+// al-islam.org's Islamic Supplication Browser and Mafatih al-Jinan references.
+// Keep this list in sync with lib/db/src/seed.ts.
 const FALLBACK_DUAS = [
   { id: 'dua-morning', category: 'الصباح', title: 'دعاء الصباح', body: 'اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور.', count: 'مرة واحدة' },
   { id: 'dua-rizq', category: 'الصباح', title: 'طلب الرزق', body: 'اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.', count: '٣ مرات' },
   { id: 'dua-evening', category: 'المساء', title: 'دعاء المساء', body: 'أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 'مرة واحدة' },
   { id: 'dua-sujood', category: 'الصلاة', title: 'دعاء السجود', body: 'سبحان ربي الأعلى وبحمده، اللهم اغفر لي وارحمني واهدني وعافني وارزقني.', count: 'في السجود' },
+  { id: 'dua-kumayl', category: 'الصلاة', title: 'دعاء كميل', body: 'اللهم إني أسألك برحمتك التي وسعت كل شيء، وبقوتك التي قهرت بها كل شيء، وخضع لها كل شيء، وذل لها كل شيء.', count: 'ليلة الجمعة' },
+  { id: 'dua-tawassul', category: 'الصلاة', title: 'دعاء التوسل', body: 'اللهم إني أسألك وأتوجه إليك بنبيك نبي الرحمة، محمد صلى الله عليه وآله، يا أبا القاسم يا رسول الله، يا إمام الرحمة.', count: 'عند الحاجة' },
+  { id: 'dua-nudba', category: 'الصباح', title: 'دعاء الندبة', body: 'الحمد لله رب العالمين، وصلى الله على سيدنا محمد نبيه وآله وسلم تسليماً.', count: 'صباح الجمعة' },
+  { id: 'dua-faraj', category: 'الصلاة', title: 'دعاء الفرج', body: 'إلهي عظم البلاء، وبرح الخفاء، وانكشف الغطاء، وانقطع الرجاء، وضاقت الأرض ومنعت السماء.', count: 'عند الشدة' },
+  { id: 'dua-arafah', category: 'الصلاة', title: 'دعاء عرفة', body: 'الحمد لله الذي ليس لقضائه دافع، ولا لعطائه مانع، ولا كصنعه صنع صانع، وهو الجواد الواسع.', count: 'يوم عرفة' },
+  { id: 'dua-makarim', category: 'الصلاة', title: 'مكارم الأخلاق', body: 'اللهم صل على محمد وآل محمد، وبلغ بإيماني أكمل الإيمان، واجعل يقيني أفضل اليقين.', count: 'في كل وقت' },
 ];
 
 export default function DuasScreen() {

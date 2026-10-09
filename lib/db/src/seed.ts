@@ -149,11 +149,23 @@ const surahs: InsertSurah[] = [
   { slug: "surah-114", number: "١١٤", name: "الناس", english: "An-Nas", verseCount: 6, revelationType: "مكية", excerpt: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ", verses: versesFor(114) },
 ];
 
+// Arabic text references checked against:
+// https://supplications.al-islam.org/ and
+// https://www.al-islam.org/commentary-kumayl-supplication-husayn-ansariyan/complete-text-dua-kumayl-arabic-trasliteration-and
+// https://www.al-islam.org/file/dua-al-tawassul-arabic-text-english-translation
+// The app displays short, source-preserving excerpts; full texts should be
+// added to `body` before presenting them as complete prayers.
 const duas: InsertDua[] = [
   { slug: "dua-morning", category: "الصباح", title: "دعاء الصباح", body: "اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور.", count: "مرة واحدة" },
   { slug: "dua-rizq", category: "الصباح", title: "طلب الرزق", body: "اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.", count: "٣ مرات" },
   { slug: "dua-evening", category: "المساء", title: "دعاء المساء", body: "أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.", count: "مرة واحدة" },
   { slug: "dua-sujood", category: "الصلاة", title: "دعاء السجود", body: "سبحان ربي الأعلى وبحمده، اللهم اغفر لي وارحمني واهدني وعافني وارزقني.", count: "في السجود" },
+  { slug: "dua-kumayl", category: "الصلاة", title: "دعاء كميل", body: "اللهم إني أسألك برحمتك التي وسعت كل شيء، وبقوتك التي قهرت بها كل شيء، وخضع لها كل شيء، وذل لها كل شيء.", count: "ليلة الجمعة" },
+  { slug: "dua-tawassul", category: "الصلاة", title: "دعاء التوسل", body: "اللهم إني أسألك وأتوجه إليك بنبيك نبي الرحمة، محمد صلى الله عليه وآله، يا أبا القاسم يا رسول الله، يا إمام الرحمة.", count: "عند الحاجة" },
+  { slug: "dua-nudba", category: "الصباح", title: "دعاء الندبة", body: "الحمد لله رب العالمين، وصلى الله على سيدنا محمد نبيه وآله وسلم تسليماً.", count: "صباح الجمعة" },
+  { slug: "dua-faraj", category: "الصلاة", title: "دعاء الفرج", body: "إلهي عظم البلاء، وبرح الخفاء، وانكشف الغطاء، وانقطع الرجاء، وضاقت الأرض ومنعت السماء.", count: "عند الشدة" },
+  { slug: "dua-arafah", category: "الصلاة", title: "دعاء عرفة", body: "الحمد لله الذي ليس لقضائه دافع، ولا لعطائه مانع، ولا كصنعه صنع صانع، وهو الجواد الواسع.", count: "يوم عرفة" },
+  { slug: "dua-makarim", category: "الصلاة", title: "مكارم الأخلاق", body: "اللهم صل على محمد وآل محمد، وبلغ بإيماني أكمل الإيمان، واجعل يقيني أفضل اليقين.", count: "في كل وقت" },
 ];
 
 const azkar: InsertAzkar[] = [
@@ -164,17 +176,36 @@ const azkar: InsertAzkar[] = [
   { slug: "azkar-evening-2", category: "المساء", title: "آية الكرسي", body: "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ.", count: "مرة واحدة" },
   { slug: "azkar-prayer-1", category: "بعد الصلاة", title: "تسبيح فاطمة الزهراء", body: "الله أكبر (٣٤ مرة)، الحمد لله (٣٣ مرة)، سبحان الله (٣٣ مرة).", count: "بعد كل صلاة" },
   { slug: "azkar-prayer-2", category: "بعد الصلاة", title: "دعاء بعد الصلاة", body: "اللهم أنت السلام ومنك السلام تباركت يا ذا الجلال والإكرام.", count: "مرة واحدة" },
+  { slug: "azkar-morning-4", category: "الصباح", title: "الصلاة على محمد وآله", body: "اللهم صل على محمد وآل محمد.", count: "١٠ مرات" },
+  { slug: "azkar-morning-5", category: "الصباح", title: "الاستعاذة", body: "أعوذ بكلمات الله التامات من شر ما خلق.", count: "٣ مرات" },
+  { slug: "azkar-evening-3", category: "المساء", title: "سورة الإخلاص", body: "قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ.", count: "٣ مرات" },
+  { slug: "azkar-evening-4", category: "المساء", title: "سورة الفلق", body: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِنْ شَرِّ مَا خَلَقَ ۝ وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ.", count: "٣ مرات" },
+  { slug: "azkar-evening-5", category: "المساء", title: "سورة الناس", body: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ.", count: "٣ مرات" },
+  { slug: "azkar-prayer-3", category: "بعد الصلاة", title: "الاستغفار", body: "أستغفر الله ربي وأتوب إليه.", count: "٣ مرات" },
 ];
 
+// Ziyarat references checked against:
+// https://supplications.al-islam.org/ziaraat/ziarat-ashura.php
+// https://www.al-islam.org/bn/file/ziyarat-amin-allah-arabic-text-english-translation
+// https://www.al-islam.org/ziarat-warith-ziyaraat-ahlul-bayt/ziyarat-warith-arabic-text
+// https://supplications.al-islam.org/
 const ziyarat: InsertZiyarat[] = [
   { slug: "ziyarat-hussain", category: "عامة", title: "زيارة الإمام الحسين (ع)", excerpt: "السلام عليك يا أبا عبد الله، السلام عليك يا ابن رسول الله..." },
   { slug: "ziyarat-nabi", category: "عامة", title: "زيارة النبي الأكرم (ص)", excerpt: "السلام عليك أيها النبي ورحمة الله وبركاته، السلام عليك يا رسول الله..." },
   { slug: "ziyarat-abbas", category: "عامة", title: "زيارة العباس (ع)", excerpt: "السلام عليك أيها العبد الصالح، المطيع لله ولرسوله..." },
   { slug: "ziyarat-al-yasin", category: "عامة", title: "زيارة آل ياسين", excerpt: "السلام عليك يا داعي الله وربّاني آياته..." },
   { slug: "ziyarat-ashura", category: "عامة", title: "زيارة عاشوراء", excerpt: "السلام عليك يا أبا عبد الله، السلام عليك وعلى الأرواح التي حلّت بفنائك..." },
-  { slug: "ziyarat-saturday", category: "أيام الأسبوع", title: "زيارة يوم السبت", excerpt: "مخصصة للإمام علي بن أبي طالب (ع)" },
-  { slug: "ziyarat-sunday", category: "أيام الأسبوع", title: "زيارة يوم الأحد", excerpt: "مخصصة للإمام الحسن بن علي (ع)" },
-  { slug: "ziyarat-thursday", category: "أيام الأسبوع", title: "زيارة يوم الخميس", excerpt: "مخصصة للإمام موسى الكاظم (ع)" },
+  { slug: "ziyarat-amin-allah", category: "عامة", title: "زيارة أمين الله", excerpt: "السلام عليك يا أمين الله في أرضه، وحجته على عباده، السلام عليك يا أمير المؤمنين..." },
+  { slug: "ziyarat-warith", category: "عامة", title: "زيارة وارث", excerpt: "السلام عليك يا وارث آدم صفوة الله، السلام عليك يا وارث نوح نبي الله..." },
+  { slug: "ziyarat-jamia-kabira", category: "عامة", title: "الزيارة الجامعة الكبيرة", excerpt: "السلام عليكم يا أهل بيت النبوة، وموضع الرسالة، ومختلف الملائكة، ومهبط الوحي..." },
+  { slug: "ziyarat-imam-rida", category: "عامة", title: "زيارة الإمام الرضا (ع)", excerpt: "السلام عليك يا ولي الله، السلام عليك يا حجة الله، السلام عليك يا نور الله في ظلمات الأرض..." },
+  { slug: "ziyarat-saturday", category: "أيام الأسبوع", title: "زيارة يوم السبت", excerpt: "مخصصة لرسول الله محمد (ص)" },
+  { slug: "ziyarat-sunday", category: "أيام الأسبوع", title: "زيارة يوم الأحد", excerpt: "مخصصة لأمير المؤمنين علي بن أبي طالب (ع)" },
+  { slug: "ziyarat-monday", category: "أيام الأسبوع", title: "زيارة يوم الاثنين", excerpt: "مخصصة للإمام الحسين والإمام زين العابدين (ع)" },
+  { slug: "ziyarat-tuesday", category: "أيام الأسبوع", title: "زيارة يوم الثلاثاء", excerpt: "مخصصة للإمام محمد الباقر والإمام جعفر الصادق (ع)" },
+  { slug: "ziyarat-wednesday", category: "أيام الأسبوع", title: "زيارة يوم الأربعاء", excerpt: "مخصصة للأئمة موسى الكاظم وعلي الرضا ومحمد الجواد وعلي الهادي والحسن العسكري (ع)" },
+  { slug: "ziyarat-thursday", category: "أيام الأسبوع", title: "زيارة يوم الخميس", excerpt: "مخصصة للسيدة فاطمة الزهراء (ع)" },
+  { slug: "ziyarat-friday", category: "أيام الأسبوع", title: "زيارة يوم الجمعة", excerpt: "مخصصة للإمام المهدي (عج)" },
 ];
 
 const wallpapers: InsertWallpaper[] = [

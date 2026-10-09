@@ -63,7 +63,7 @@ export default function MoreScreen() {
           <ToolRow icon="calendar" title="التقويم الهجري" subtitle="عرض الشهر وأيامه" accent="#F3E5C5" onPress={() => router.push('/hijri-calendar' as Href)} />
           <ToolRow icon="hash" title="عداد الركعات" subtitle={`${rakahCount} ركعات مسجلة اليوم`} onPress={countRakah} />
           <ToolRow icon="bookmark" title="المحفوظات" subtitle={`${bookmarks.length} عناصر محفوظة`} onPress={() => router.push('/bookmarks' as Href)} />
-          <ToolRow icon="compass" title="اتجاه القبلة" subtitle="اضبط موقعك لمعرفة الاتجاه" onPress={() => Alert.alert('اتجاه القبلة', 'ميزة تحديد اتجاه القبلة ستستخدم موقع جهازك عند تفعيلها.')} />
+          <ToolRow icon="compass" title="اتجاه القبلة" subtitle="اضبط موقعك لمعرفة الاتجاه" onPress={() => router.push('/qibla' as Href)} />
         </View>
 
         <Text style={[styles.sectionTitle, { color: colors.deep, marginTop: 25 }]}>المميزات</Text>

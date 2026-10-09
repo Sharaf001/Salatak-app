@@ -10,7 +10,9 @@ import { useSalatak } from '@/providers/SalatakProvider';
 
 const categories = ['الكل', 'الصباح', 'المساء', 'بعد الصلاة'];
 
-// Bundled offline content — see the comment in duas.tsx for why this exists.
+// Bundled offline content — verified against the Qur'an and the daily
+// supplication references in al-islam.org's Islamic Supplication Browser.
+// Keep this list in sync with lib/db/src/seed.ts.
 const FALLBACK_AZKAR = [
   { id: 'azkar-morning-1', category: 'الصباح', title: 'سيد الاستغفار', body: 'اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت.', count: 'مرة واحدة' },
   { id: 'azkar-morning-2', category: 'الصباح', title: 'أذكار الصباح', body: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 'مرة واحدة' },
@@ -19,6 +21,12 @@ const FALLBACK_AZKAR = [
   { id: 'azkar-evening-2', category: 'المساء', title: 'آية الكرسي', body: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ.', count: 'مرة واحدة' },
   { id: 'azkar-prayer-1', category: 'بعد الصلاة', title: 'تسبيح فاطمة الزهراء', body: 'الله أكبر (٣٤ مرة)، الحمد لله (٣٣ مرة)، سبحان الله (٣٣ مرة).', count: 'بعد كل صلاة' },
   { id: 'azkar-prayer-2', category: 'بعد الصلاة', title: 'دعاء بعد الصلاة', body: 'اللهم أنت السلام ومنك السلام تباركت يا ذا الجلال والإكرام.', count: 'مرة واحدة' },
+  { id: 'azkar-morning-4', category: 'الصباح', title: 'الصلاة على محمد وآله', body: 'اللهم صل على محمد وآل محمد.', count: '١٠ مرات' },
+  { id: 'azkar-morning-5', category: 'الصباح', title: 'الاستعاذة', body: 'أعوذ بكلمات الله التامات من شر ما خلق.', count: '٣ مرات' },
+  { id: 'azkar-evening-3', category: 'المساء', title: 'سورة الإخلاص', body: 'قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ.', count: '٣ مرات' },
+  { id: 'azkar-evening-4', category: 'المساء', title: 'سورة الفلق', body: 'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِنْ شَرِّ مَا خَلَقَ ۝ وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ.', count: '٣ مرات' },
+  { id: 'azkar-evening-5', category: 'المساء', title: 'سورة الناس', body: 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ.', count: '٣ مرات' },
+  { id: 'azkar-prayer-3', category: 'بعد الصلاة', title: 'الاستغفار', body: 'أستغفر الله ربي وأتوب إليه.', count: '٣ مرات' },
 ];
 
 export default function AzkarScreen() {
