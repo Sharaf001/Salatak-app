@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as MediaLibrary from 'expo-media-library';
 import { router, Stack } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -38,7 +38,12 @@ export default function WallpapersScreen() {
         await Linking.openURL(imageUrl);
         return;
       }
-      const permission = await MediaLibrary.requestPermissionsAsync();
+      if (Constants.appOwnership === 'expo') {
+        Alert.alert('يلزم إصدار التطوير', 'حفظ الخلفيات غير متاح بالكامل في Expo Go. شغّل نسخة تطويرية للتطبيق لاختبار الحفظ في صور جهازك.');
+        return;
+      }
+      const MediaLibrary = await import('expo-media-library');
+      const permission = await MediaLibrary.requestPermissionsAsync(true, ['photo']);
       if (!permission.granted) {
         Alert.alert('الإذن مطلوب', 'اسمح للتطبيق بالوصول إلى الصور لحفظ الخلفية.');
         return;

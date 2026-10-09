@@ -17,7 +17,16 @@
     "plugins": [
       "expo-router",
       "expo-notifications",
-      "expo-media-library",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "صلاتك يحتاج إلى الوصول إلى الصور لحفظ الخلفيات التي تختارها.",
+          "savePhotosPermission": "صلاتك يحتاج إلى إذن لحفظ الخلفيات في صور جهازك.",
+          "granularPermissions": [
+            "photo"
+          ]
+        }
+      ],
       [
         "expo-location",
         {
