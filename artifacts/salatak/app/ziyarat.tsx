@@ -7,30 +7,12 @@ import * as Haptics from 'expo-haptics';
 import { useZiyarat } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
+import { FALLBACK_ZIYARAT } from '@/data/religious-content';
 
 const categories = ['الكل', 'عامة', 'أيام الأسبوع'];
 
 // Bundled offline content. Text attribution and wording remain pending review
 // by a qualified religious reviewer; keep this list in sync with seed.ts.
-const FALLBACK_ZIYARAT = [
-  { id: 'ziyarat-hussain', category: 'عامة', title: 'زيارة الإمام الحسين (ع)', excerpt: 'السلام عليك يا أبا عبد الله، السلام عليك يا ابن رسول الله...' },
-  { id: 'ziyarat-nabi', category: 'عامة', title: 'زيارة النبي الأكرم (ص)', excerpt: 'السلام عليك أيها النبي ورحمة الله وبركاته، السلام عليك يا رسول الله...' },
-  { id: 'ziyarat-abbas', category: 'عامة', title: 'زيارة العباس (ع)', excerpt: 'السلام عليك أيها العبد الصالح، المطيع لله ولرسوله...' },
-  { id: 'ziyarat-al-yasin', category: 'عامة', title: 'زيارة آل ياسين', excerpt: 'السلام عليك يا داعي الله وربّاني آياته...' },
-  { id: 'ziyarat-ashura', category: 'عامة', title: 'زيارة عاشوراء', excerpt: 'السلام عليك يا أبا عبد الله، السلام عليك وعلى الأرواح التي حلّت بفنائك...' },
-  { id: 'ziyarat-amin-allah', category: 'عامة', title: 'زيارة أمين الله', excerpt: 'السلام عليك يا أمين الله في أرضه، وحجته على عباده، السلام عليك يا أمير المؤمنين...' },
-  { id: 'ziyarat-warith', category: 'عامة', title: 'زيارة وارث', excerpt: 'السلام عليك يا وارث آدم صفوة الله، السلام عليك يا وارث نوح نبي الله...' },
-  { id: 'ziyarat-jamia-kabira', category: 'عامة', title: 'الزيارة الجامعة الكبيرة', excerpt: 'السلام عليكم يا أهل بيت النبوة، وموضع الرسالة، ومختلف الملائكة، ومهبط الوحي...' },
-  { id: 'ziyarat-imam-rida', category: 'عامة', title: 'زيارة الإمام الرضا (ع)', excerpt: 'السلام عليك يا ولي الله، السلام عليك يا حجة الله، السلام عليك يا نور الله في ظلمات الأرض...' },
-  { id: 'ziyarat-saturday', category: 'أيام الأسبوع', title: 'زيارة يوم السبت', excerpt: 'مخصصة لرسول الله محمد (ص)' },
-  { id: 'ziyarat-sunday', category: 'أيام الأسبوع', title: 'زيارة يوم الأحد', excerpt: 'مخصصة لأمير المؤمنين علي وفاطمة الزهراء (ع)' },
-  { id: 'ziyarat-monday', category: 'أيام الأسبوع', title: 'زيارة يوم الاثنين', excerpt: 'مخصصة للإمامين الحسن والحسين (ع)' },
-  { id: 'ziyarat-tuesday', category: 'أيام الأسبوع', title: 'زيارة يوم الثلاثاء', excerpt: 'مخصصة للأئمة زين العابدين والباقر والصادق (ع)' },
-  { id: 'ziyarat-wednesday', category: 'أيام الأسبوع', title: 'زيارة يوم الأربعاء', excerpt: 'مخصصة للأئمة الكاظم والرضا والجواد والهادي (ع)' },
-  { id: 'ziyarat-thursday', category: 'أيام الأسبوع', title: 'زيارة يوم الخميس', excerpt: 'مخصصة للإمام الحسن العسكري (ع)' },
-  { id: 'ziyarat-friday', category: 'أيام الأسبوع', title: 'زيارة يوم الجمعة', excerpt: 'مخصصة للإمام المهدي (عج)' },
-];
-
 export default function ZiyaratScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -38,7 +20,15 @@ export default function ZiyaratScreen() {
   const [activeCategory, setActiveCategory] = useState('الكل');
   const [selected, setSelected] = useState<{ title: string; excerpt: string; body?: string | null } | null>(null);
   const { data } = useZiyarat();
-  const ziyaratList = Array.isArray(data) && data.length > 0 ? data.map((z) => ({ id: z.slug, category: z.category, title: z.title, excerpt: z.excerpt, body: z.body })) : FALLBACK_ZIYARAT;
+  const ziyaratList = Array.isArray(data) && data.length > 0
+    ? data.map((z) => ({
+      id: z.slug,
+      category: z.category,
+      title: z.title,
+      excerpt: z.excerpt,
+      body: z.body && z.body.length > 200 ? z.body : FALLBACK_ZIYARAT.find((fallback) => fallback.id === z.slug)?.body ?? z.body,
+    }))
+    : FALLBACK_ZIYARAT.map((z) => ({ ...z, excerpt: z.body }));
   const visible = activeCategory === 'الكل' ? ziyaratList : ziyaratList.filter((item) => item.category === activeCategory);
 
   return (
@@ -103,8 +93,8 @@ export default function ZiyaratScreen() {
             </Pressable>
             <Text style={[styles.modalTitle, { color: colors.deep }]}>{selected?.title}</Text>
             <Text style={[styles.modalText, { color: colors.deepMuted }]}>{selected?.body || selected?.excerpt}</Text>
-            {!selected?.body && <Text style={[styles.modalPending, { color: colors.mutedForeground }]}>النص الكامل قيد المراجعة ولم يُنشر بعد.</Text>}
-            <Text style={[styles.modalSource, { color: colors.primary }]}>المصدر المنسوب: مفاتيح الجنان ومراجع الزيارات المذكورة في بيانات التطبيق</Text>
+            {!selected?.body && <Text style={[styles.modalPending, { color: colors.mutedForeground }]}>النص الكامل غير متاح لهذا الإدخال.</Text>}
+            <Text style={[styles.modalSource, { color: colors.primary }]}>المصدر المنسوب: السجل العربي في ShiaCompanion، مع إحالة مفاتيح الجنان حيث ينطبق ذلك. المراجعة الدينية المؤهلة ما زالت مطلوبة.</Text>
           </View>
         </View>
       </Modal>

@@ -33,6 +33,12 @@ config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env")
 const versesFile = JSON.parse(
   readFileSync(new URL("../../../artifacts/salatak/data/quran-verses.json", import.meta.url), "utf-8"),
 ) as Record<string, string[]>;
+const religiousTexts = JSON.parse(
+  readFileSync(new URL("../../../artifacts/salatak/data/religious-texts.json", import.meta.url), "utf-8"),
+) as Record<string, { body: string }>;
+function fullBody(slug: string, fallback: string): string {
+  return religiousTexts[slug]?.body ?? fallback;
+}
 function versesFor(n: number): string[] {
   return versesFile[String(n)] ?? [];
 }
@@ -158,8 +164,7 @@ const surahs: InsertSurah[] = [
 // https://supplications.al-islam.org/ and
 // https://www.al-islam.org/commentary-kumayl-supplication-husayn-ansariyan/complete-text-dua-kumayl-arabic-trasliteration-and
 // https://www.al-islam.org/file/dua-al-tawassul-arabic-text-english-translation
-// The app displays short, source-preserving excerpts; full texts should be
-// added to `body` before presenting them as complete prayers.
+// Full Arabic bodies are loaded from the locally vendored source records below.
 const duas: InsertDua[] = [
   { slug: "dua-morning", category: "الصباح", title: "دعاء الصباح", body: "اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور.", count: "مرة واحدة" },
   { slug: "dua-rizq", category: "الصباح", title: "طلب الرزق", body: "اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.", count: "٣ مرات" },
@@ -234,7 +239,7 @@ async function main() {
   console.log(`Seeded ${surahs.length} rows into surahs`);
 
   await db.delete(duasTable);
-  await db.insert(duasTable).values(duas);
+  await db.insert(duasTable).values(duas.map((item) => ({ ...item, body: fullBody(item.slug, item.body) })));
   console.log(`Seeded ${duas.length} rows into duas`);
 
   await db.delete(azkarTable);
@@ -242,7 +247,10 @@ async function main() {
   console.log(`Seeded ${azkar.length} rows into azkar`);
 
   await db.delete(ziyaratTable);
-  await db.insert(ziyaratTable).values(ziyarat);
+  await db.insert(ziyaratTable).values(ziyarat.map((item) => ({
+    ...item,
+    body: fullBody(item.slug, item.body ?? item.excerpt.replace(/\.\.\.$/, "")),
+  })));
   console.log(`Seeded ${ziyarat.length} rows into ziyarat`);
 
   await db.delete(wallpapersTable);

@@ -6,31 +6,27 @@ import * as Haptics from 'expo-haptics';
 import { useDuas } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
+import { FALLBACK_DUAS } from '@/data/religious-content';
 
 const categories = ['الكل', 'الصباح', 'المساء', 'الصلاة'];
 
 // Bundled offline content. Wording and attribution remain pending review by a
 // qualified religious reviewer; keep this list in sync with lib/db/src/seed.ts.
-const FALLBACK_DUAS = [
-  { id: 'dua-morning', category: 'الصباح', title: 'دعاء الصباح', body: 'اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور.', count: 'مرة واحدة' },
-  { id: 'dua-rizq', category: 'الصباح', title: 'طلب الرزق', body: 'اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.', count: '٣ مرات' },
-  { id: 'dua-evening', category: 'المساء', title: 'دعاء المساء', body: 'أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 'مرة واحدة' },
-  { id: 'dua-sujood', category: 'الصلاة', title: 'دعاء السجود', body: 'سبحان ربي الأعلى وبحمده، اللهم اغفر لي وارحمني واهدني وعافني وارزقني.', count: 'في السجود' },
-  { id: 'dua-kumayl', category: 'الصلاة', title: 'دعاء كميل', body: 'اللهم إني أسألك برحمتك التي وسعت كل شيء، وبقوتك التي قهرت بها كل شيء، وخضع لها كل شيء، وذل لها كل شيء.', count: 'ليلة الجمعة' },
-  { id: 'dua-tawassul', category: 'الصلاة', title: 'دعاء التوسل', body: 'اللهم إني أسألك وأتوجه إليك بنبيك نبي الرحمة، محمد صلى الله عليه وآله، يا أبا القاسم يا رسول الله، يا إمام الرحمة.', count: 'عند الحاجة' },
-  { id: 'dua-nudba', category: 'الصباح', title: 'دعاء الندبة', body: 'الحمد لله رب العالمين، وصلى الله على سيدنا محمد نبيه وآله وسلم تسليماً.', count: 'صباح الجمعة' },
-  { id: 'dua-faraj', category: 'الصلاة', title: 'دعاء الفرج', body: 'إلهي عظم البلاء، وبرح الخفاء، وانكشف الغطاء، وانقطع الرجاء، وضاقت الأرض ومنعت السماء.', count: 'عند الشدة' },
-  { id: 'dua-arafah', category: 'الصلاة', title: 'دعاء عرفة', body: 'الحمد لله الذي ليس لقضائه دافع، ولا لعطائه مانع، ولا كصنعه صنع صانع، وهو الجواد الواسع.', count: 'يوم عرفة' },
-  { id: 'dua-makarim', category: 'الصلاة', title: 'مكارم الأخلاق', body: 'اللهم صل على محمد وآل محمد، وبلغ بإيماني أكمل الإيمان، واجعل يقيني أفضل اليقين.', count: 'في كل وقت' },
-];
-
 export default function DuasScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { toggleBookmark, isBookmarked } = useSalatak();
   const [activeCategory, setActiveCategory] = useState('الكل');
   const { data } = useDuas();
-  const duas = Array.isArray(data) && data.length > 0 ? data.map((d) => ({ id: d.slug, category: d.category, title: d.title, body: d.body, count: d.count })) : FALLBACK_DUAS;
+  const duas = Array.isArray(data) && data.length > 0
+    ? data.map((d) => ({
+      id: d.slug,
+      category: d.category,
+      title: d.title,
+      body: d.body.length > 200 ? d.body : FALLBACK_DUAS.find((fallback) => fallback.id === d.slug)?.body ?? d.body,
+      count: d.count,
+    }))
+    : FALLBACK_DUAS;
   const visibleDuas = activeCategory === 'الكل' ? duas : duas.filter((dua) => dua.category === activeCategory);
 
   return (
@@ -53,7 +49,7 @@ export default function DuasScreen() {
         </View>
         <View style={[styles.notice, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
           <Text style={[styles.noticeTitle, { color: colors.deep }]}>المصدر وحالة المراجعة</Text>
-          <Text style={[styles.noticeText, { color: colors.deepMuted }]}>المصادر المنسوبة: مفاتيح الجنان ومراجع الأدعية في al-islam.org. هذه النصوص قيد مراجعة شخص مؤهل، فلا تُعرض كمحتوى موثّق بعد.</Text>
+          <Text style={[styles.noticeText, { color: colors.deepMuted }]}>المصدر النصي: سجلات ShiaCompanion العربية، مع إحالات مفاتيح الجنان وal-islam.org حيث تنطبق. هذه النصوص قيد مراجعة شخص مؤهل، فلا تُعرض كمحتوى موثّق بعد.</Text>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.filters, { flexDirection: 'row-reverse' }]}>
