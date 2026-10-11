@@ -189,7 +189,8 @@ const azkar: InsertAzkar[] = [
   { slug: "azkar-prayer-3", category: "بعد الصلاة", title: "الاستغفار", body: "أستغفر الله ربي وأتوب إليه.", count: "٣ مرات" },
 ];
 
-// Ziyarat references checked against:
+// Proposed source references for later review by a qualified religious
+// reviewer:
 // https://supplications.al-islam.org/ziaraat/ziarat-ashura.php
 // https://www.al-islam.org/bn/file/ziyarat-amin-allah-arabic-text-english-translation
 // https://www.al-islam.org/ziarat-warith-ziyaraat-ahlul-bayt/ziyarat-warith-arabic-text
@@ -205,11 +206,11 @@ const ziyarat: InsertZiyarat[] = [
   { slug: "ziyarat-jamia-kabira", category: "عامة", title: "الزيارة الجامعة الكبيرة", excerpt: "السلام عليكم يا أهل بيت النبوة، وموضع الرسالة، ومختلف الملائكة، ومهبط الوحي..." },
   { slug: "ziyarat-imam-rida", category: "عامة", title: "زيارة الإمام الرضا (ع)", excerpt: "السلام عليك يا ولي الله، السلام عليك يا حجة الله، السلام عليك يا نور الله في ظلمات الأرض..." },
   { slug: "ziyarat-saturday", category: "أيام الأسبوع", title: "زيارة يوم السبت", excerpt: "مخصصة لرسول الله محمد (ص)" },
-  { slug: "ziyarat-sunday", category: "أيام الأسبوع", title: "زيارة يوم الأحد", excerpt: "مخصصة لأمير المؤمنين علي بن أبي طالب (ع)" },
-  { slug: "ziyarat-monday", category: "أيام الأسبوع", title: "زيارة يوم الاثنين", excerpt: "مخصصة للإمام الحسين والإمام زين العابدين (ع)" },
-  { slug: "ziyarat-tuesday", category: "أيام الأسبوع", title: "زيارة يوم الثلاثاء", excerpt: "مخصصة للإمام محمد الباقر والإمام جعفر الصادق (ع)" },
-  { slug: "ziyarat-wednesday", category: "أيام الأسبوع", title: "زيارة يوم الأربعاء", excerpt: "مخصصة للأئمة موسى الكاظم وعلي الرضا ومحمد الجواد وعلي الهادي والحسن العسكري (ع)" },
-  { slug: "ziyarat-thursday", category: "أيام الأسبوع", title: "زيارة يوم الخميس", excerpt: "مخصصة للسيدة فاطمة الزهراء (ع)" },
+  { slug: "ziyarat-sunday", category: "أيام الأسبوع", title: "زيارة يوم الأحد", excerpt: "مخصصة لأمير المؤمنين علي وفاطمة الزهراء (ع)" },
+  { slug: "ziyarat-monday", category: "أيام الأسبوع", title: "زيارة يوم الاثنين", excerpt: "مخصصة للإمامين الحسن والحسين (ع)" },
+  { slug: "ziyarat-tuesday", category: "أيام الأسبوع", title: "زيارة يوم الثلاثاء", excerpt: "مخصصة للأئمة زين العابدين والباقر والصادق (ع)" },
+  { slug: "ziyarat-wednesday", category: "أيام الأسبوع", title: "زيارة يوم الأربعاء", excerpt: "مخصصة للأئمة الكاظم والرضا والجواد والهادي (ع)" },
+  { slug: "ziyarat-thursday", category: "أيام الأسبوع", title: "زيارة يوم الخميس", excerpt: "مخصصة للإمام الحسن العسكري (ع)" },
   { slug: "ziyarat-friday", category: "أيام الأسبوع", title: "زيارة يوم الجمعة", excerpt: "مخصصة للإمام المهدي (عج)" },
 ];
 

@@ -26,8 +26,8 @@ const FALLBACK_ITEMS: Record<string, BookmarkItem> = {
   'ziyarat-al-yasin': { id: 'ziyarat-al-yasin', title: 'زيارة آل ياسين', subtitle: 'زيارات · عامة', excerpt: 'السلام عليك يا داعي الله وربّاني آياته...', icon: 'book-open' },
   'ziyarat-ashura': { id: 'ziyarat-ashura', title: 'زيارة عاشوراء', subtitle: 'زيارات · عامة', excerpt: 'السلام عليك يا أبا عبد الله، السلام عليك وعلى الأرواح التي حلّت بفنائك...', icon: 'book-open' },
   'ziyarat-saturday': { id: 'ziyarat-saturday', title: 'زيارة يوم السبت', subtitle: 'زيارات · أيام الأسبوع', excerpt: 'مخصصة للإمام علي بن أبي طالب (ع)', icon: 'book-open' },
-  'ziyarat-sunday': { id: 'ziyarat-sunday', title: 'زيارة يوم الأحد', subtitle: 'زيارات · أيام الأسبوع', excerpt: 'مخصصة للإمام الحسن بن علي (ع)', icon: 'book-open' },
-  'ziyarat-thursday': { id: 'ziyarat-thursday', title: 'زيارة يوم الخميس', subtitle: 'زيارات · أيام الأسبوع', excerpt: 'مخصصة للإمام موسى الكاظم (ع)', icon: 'book-open' },
+  'ziyarat-sunday': { id: 'ziyarat-sunday', title: 'زيارة يوم الأحد', subtitle: 'زيارات · أيام الأسبوع', excerpt: 'مخصصة لأمير المؤمنين علي وفاطمة الزهراء (ع)', icon: 'book-open' },
+  'ziyarat-thursday': { id: 'ziyarat-thursday', title: 'زيارة يوم الخميس', subtitle: 'زيارات · أيام الأسبوع', excerpt: 'مخصصة للإمام الحسن العسكري (ع)', icon: 'book-open' },
 };
 
 function fallbackForId(id: string): BookmarkItem {

@@ -9,9 +9,8 @@ import { useSalatak } from '@/providers/SalatakProvider';
 
 const categories = ['الكل', 'الصباح', 'المساء', 'الصلاة'];
 
-// Bundled offline content — verified against the Arabic prayer texts in
-// al-islam.org's Islamic Supplication Browser and Mafatih al-Jinan references.
-// Keep this list in sync with lib/db/src/seed.ts.
+// Bundled offline content. Wording and attribution remain pending review by a
+// qualified religious reviewer; keep this list in sync with lib/db/src/seed.ts.
 const FALLBACK_DUAS = [
   { id: 'dua-morning', category: 'الصباح', title: 'دعاء الصباح', body: 'اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور.', count: 'مرة واحدة' },
   { id: 'dua-rizq', category: 'الصباح', title: 'طلب الرزق', body: 'اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.', count: '٣ مرات' },
@@ -51,6 +50,10 @@ export default function DuasScreen() {
           <Text style={styles.introArabic}>وَاذْكُر رَّبَّكَ إِذَا نَسِيتَ</Text>
           <Text style={styles.introTranslation}>واجعل لسانك عامراً بذكر الله</Text>
           <View style={styles.introFooter}><Feather name="sun" size={14} color="#E8C77D" /><Text style={styles.introSource}>الكهف · ٢٤</Text></View>
+        </View>
+        <View style={[styles.notice, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Text style={[styles.noticeTitle, { color: colors.deep }]}>المصدر وحالة المراجعة</Text>
+          <Text style={[styles.noticeText, { color: colors.deepMuted }]}>المصادر المنسوبة: مفاتيح الجنان ومراجع الأدعية في al-islam.org. هذه النصوص قيد مراجعة شخص مؤهل، فلا تُعرض كمحتوى موثّق بعد.</Text>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.filters, { flexDirection: 'row-reverse' }]}>
@@ -93,6 +96,9 @@ export default function DuasScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
+  notice: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 16 },
+  noticeTitle: { textAlign: 'right', fontSize: 13, fontWeight: '700' },
+  noticeText: { textAlign: 'right', fontSize: 12, lineHeight: 19, marginTop: 4 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
   eyebrow: { textAlign: 'right', fontSize: 12 },
   title: { fontSize: 28, fontWeight: '700', textAlign: 'right', marginTop: 6 },

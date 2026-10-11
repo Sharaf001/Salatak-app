@@ -10,9 +10,8 @@ import { useSalatak } from '@/providers/SalatakProvider';
 
 const categories = ['الكل', 'الصباح', 'المساء', 'بعد الصلاة'];
 
-// Bundled offline content — verified against the Qur'an and the daily
-// supplication references in al-islam.org's Islamic Supplication Browser.
-// Keep this list in sync with lib/db/src/seed.ts.
+// Bundled offline content. Wording and attribution remain pending review by a
+// qualified religious reviewer; keep this list in sync with lib/db/src/seed.ts.
 const FALLBACK_AZKAR = [
   { id: 'azkar-morning-1', category: 'الصباح', title: 'سيد الاستغفار', body: 'اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت.', count: 'مرة واحدة' },
   { id: 'azkar-morning-2', category: 'الصباح', title: 'أذكار الصباح', body: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 'مرة واحدة' },
@@ -50,6 +49,10 @@ export default function AzkarScreen() {
           <View>
             <Text style={[styles.eyebrow, { color: colors.deepMuted }]}>ذِكر دائم</Text>
             <Text style={[styles.title, { color: colors.deep }]}>الأذكار</Text>
+          </View>
+          <View style={[styles.notice, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+            <Text style={[styles.noticeTitle, { color: colors.deep }]}>المصدر وحالة المراجعة</Text>
+            <Text style={[styles.noticeText, { color: colors.deepMuted }]}>المصادر المنسوبة: القرآن الكريم ومراجع الأذكار في al-islam.org. هذه النصوص قيد مراجعة شخص مؤهل، فلا تُعرض كمحتوى موثّق بعد.</Text>
           </View>
           <View style={[styles.headerIcon, { backgroundColor: '#F3E5C5' }]}>
             <Feather name="sun" size={19} color={colors.accentForeground} />
@@ -115,6 +118,9 @@ export default function AzkarScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
+  notice: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 16 },
+  noticeTitle: { textAlign: 'right', fontSize: 13, fontWeight: '700' },
+  noticeText: { textAlign: 'right', fontSize: 12, lineHeight: 19, marginTop: 4 },
   backRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, alignSelf: 'flex-end', marginBottom: 10 },
   backText: { fontSize: 13, fontWeight: '600' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
