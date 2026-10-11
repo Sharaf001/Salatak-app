@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,18 +70,19 @@ export default function DuasScreen() {
           {visibleDuas.map((dua, index) => {
             const saved = isBookmarked(dua.id);
             return (
-              <View key={dua.id} style={[styles.duaCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Pressable key={dua.id} onPress={() => router.push({ pathname: '/dua/[id]', params: { id: dua.id } })} style={[styles.duaCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={styles.duaTop}>
                   <View style={[styles.duaIndex, { backgroundColor: index === 0 ? '#F3E5C5' : colors.secondary }]}><Text style={[styles.duaIndexText, { color: index === 0 ? colors.accentForeground : colors.primary }]}>٠{index + 1}</Text></View>
                   <View style={styles.duaTitleWrap}><Text style={[styles.duaTitle, { color: colors.deep }]}>{dua.title}</Text><Text style={[styles.duaCount, { color: colors.mutedForeground }]}>{dua.count}</Text></View>
                   <Pressable onPress={() => { void Haptics.selectionAsync(); toggleBookmark(dua.id); }} hitSlop={10}><Feather name={saved ? 'bookmark' : 'bookmark'} size={18} color={saved ? colors.gold : colors.mutedForeground} /></Pressable>
                 </View>
-                <Text style={[styles.duaBody, { color: colors.deepMuted }]}>{dua.body}</Text>
+                <Text style={[styles.duaBody, { color: colors.deepMuted }]} numberOfLines={2}>{dua.body.split('\n')[0]}</Text>
+                <Text style={[styles.readMore, { color: colors.primary }]}>اضغط لقراءة الدعاء كاملاً</Text>
                 <View style={[styles.duaBottom, { borderTopColor: colors.border }]}>
                   <Text style={[styles.duaCategory, { color: colors.primary }]}>{dua.category}</Text>
                   <Pressable onPress={() => { void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); }} style={[styles.doneButton, { backgroundColor: saved ? colors.secondary : colors.cream }]}><Feather name="check" size={14} color={colors.primary} /><Text style={[styles.doneText, { color: colors.primary }]}>تمت القراءة</Text></Pressable>
                 </View>
-              </View>
+              </Pressable>
             );
           })}
         </View>
@@ -119,6 +121,7 @@ const styles = StyleSheet.create({
   duaTitle: { fontSize: 15, fontWeight: '700', textAlign: 'right' },
   duaCount: { fontSize: 10, textAlign: 'right', marginTop: 2 },
   duaBody: { fontSize: 16, lineHeight: 28, textAlign: 'right', marginTop: 15 },
+  readMore: { fontSize: 11, textAlign: 'right', marginTop: 8, fontWeight: '600' },
   duaBottom: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 14, paddingTop: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   duaCategory: { fontSize: 11, fontWeight: '600' },
   doneButton: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 9 },
