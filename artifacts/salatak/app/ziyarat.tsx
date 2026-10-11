@@ -88,13 +88,18 @@ export default function ZiyaratScreen() {
       <Modal visible={selected !== null} transparent animationType="slide" onRequestClose={() => setSelected(null)}>
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-            <Pressable onPress={() => setSelected(null)} style={styles.modalClose} hitSlop={10}>
-              <Feather name="x" size={20} color={colors.mutedForeground} />
-            </Pressable>
-            <Text style={[styles.modalTitle, { color: colors.deep }]}>{selected?.title}</Text>
-            <Text style={[styles.modalText, { color: colors.deepMuted }]}>{selected?.body || selected?.excerpt}</Text>
-            {!selected?.body && <Text style={[styles.modalPending, { color: colors.mutedForeground }]}>النص الكامل غير متاح لهذا الإدخال.</Text>}
-            <Text style={[styles.modalSource, { color: colors.primary }]}>المصدر المنسوب: السجل العربي في ShiaCompanion، مع إحالة مفاتيح الجنان حيث ينطبق ذلك. المراجعة الدينية المؤهلة ما زالت مطلوبة.</Text>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalContent}
+            >
+              <Pressable onPress={() => setSelected(null)} style={styles.modalClose} hitSlop={10}>
+                <Feather name="x" size={20} color={colors.mutedForeground} />
+              </Pressable>
+              <Text style={[styles.modalTitle, { color: colors.deep }]}>{selected?.title}</Text>
+              <Text style={[styles.modalText, { color: colors.deepMuted }]}>{selected?.body || selected?.excerpt}</Text>
+              {!selected?.body && <Text style={[styles.modalPending, { color: colors.mutedForeground }]}>النص الكامل غير متاح لهذا الإدخال.</Text>}
+              <Text style={[styles.modalSource, { color: colors.primary }]}>المصدر المنسوب: السجل العربي في ShiaCompanion، مع إحالة مفاتيح الجنان حيث ينطبق ذلك. المراجعة الدينية المؤهلة ما زالت مطلوبة.</Text>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -124,7 +129,8 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: 14, fontWeight: '700', textAlign: 'right' },
   excerpt: { fontSize: 11, textAlign: 'right', marginTop: 3 },
   modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
-  modalCard: { borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 22, paddingBottom: 34 },
+  modalCard: { maxHeight: '90%', borderTopLeftRadius: 22, borderTopRightRadius: 22 },
+  modalContent: { padding: 22, paddingBottom: 34 },
   modalClose: { alignSelf: 'flex-start', padding: 4 },
   modalTitle: { textAlign: 'right', fontSize: 20, fontWeight: '700', marginTop: 8 },
   modalText: { textAlign: 'right', fontSize: 18, lineHeight: 34, marginTop: 18 },
