@@ -1,10 +1,11 @@
 import { Feather } from '@expo/vector-icons';
+import { Asset } from 'expo-asset';
 import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import * as FileSystem from 'expo-file-system/legacy';
 import { router, Stack } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Image as RNImage, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWallpapers } from '@workspace/api-client-react';
 import { ErrorFallback } from '@/components/ErrorFallback';
@@ -47,7 +48,9 @@ export default function WallpapersScreen() {
   const downloadWallpaper = async (id: string, source: (typeof WALLPAPER_SOURCES)[keyof typeof WALLPAPER_SOURCES], title: string) => {
     try {
       setDownloadingId(id);
-      const imageUri = RNImage.resolveAssetSource(source).uri;
+      const asset = Asset.fromModule(source);
+      await asset.downloadAsync();
+      const imageUri = asset.localUri ?? asset.uri;
       if (Platform.OS === 'web') {
         await Linking.openURL(imageUri);
         return;
@@ -64,6 +67,7 @@ export default function WallpapersScreen() {
       }
       const extension = id === 'wp-3' ? 'png' : 'jpg';
       const localUri = `${FileSystem.cacheDirectory}salatak-${id}.${extension}`;
+      await FileSystem.deleteAsync(localUri, { idempotent: true });
       await FileSystem.copyAsync({ from: imageUri, to: localUri });
       await MediaLibrary.createAssetAsync(localUri);
       setDownloadedIds((current) => new Set(current).add(id));
