@@ -4,22 +4,30 @@ import { Image } from 'expo-image';
 import * as FileSystem from 'expo-file-system/legacy';
 import { router, Stack } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image as RNImage, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWallpapers } from '@workspace/api-client-react';
 import { ErrorFallback } from '@/components/ErrorFallback';
+import { wallpaperCredits } from '@/data/wallpaperCredits';
 
 const categories = ['الكل', 'المراقد المقدسة', 'مناسبات'];
 
-// Bundled offline content uses named Wikimedia Commons artwork rather than
-// generated placeholders. Keep these URLs in sync with lib/db/src/seed.ts.
+const WALLPAPER_SOURCES = {
+  'wp-1': require('@/assets/wallpapers/wp-1.jpg'),
+  'wp-2': require('@/assets/wallpapers/wp-2.jpg'),
+  'wp-3': require('@/assets/wallpapers/wp-3.png'),
+  'wp-4': require('@/assets/wallpapers/wp-4.jpg'),
+  'wp-5': require('@/assets/wallpapers/wp-5.jpg'),
+  'wp-6': require('@/assets/wallpapers/wp-6.jpg'),
+} as const;
+
 const FALLBACK_WALLPAPERS = [
-  { id: 'wp-1', category: 'المراقد المقدسة', title: 'مقام كربلاء', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Kerbela_Hussein_Moschee.jpg' },
-  { id: 'wp-2', category: 'المراقد المقدسة', title: 'مقام النجف', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Shrine_of_Imam_Ali_Najaf_August_2023.jpg' },
-  { id: 'wp-3', category: 'مناسبات', title: 'ليالي رمضان', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/80/17th_of_Ramadan_Mosque_night.png' },
-  { id: 'wp-4', category: 'مناسبات', title: 'ليلة القدر', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Ramadan_lantern_with_quran.jpg' },
-  { id: 'wp-5', category: 'المراقد المقدسة', title: 'الحرم العباسي', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7d/Abbas_ibn_Ali_Shrine%2C_Qajar.jpg' },
-  { id: 'wp-6', category: 'مناسبات', title: 'عيد الفطر', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/Jeonju_Mosque_during_Eid_al-Fitr_2026_6.jpg' },
+  { id: 'wp-1', category: 'المراقد المقدسة', title: 'مقام كربلاء', source: WALLPAPER_SOURCES['wp-1'] },
+  { id: 'wp-2', category: 'المراقد المقدسة', title: 'مقام النجف', source: WALLPAPER_SOURCES['wp-2'] },
+  { id: 'wp-3', category: 'مناسبات', title: 'ليالي رمضان', source: WALLPAPER_SOURCES['wp-3'] },
+  { id: 'wp-4', category: 'مناسبات', title: 'ليلة القدر', source: WALLPAPER_SOURCES['wp-4'] },
+  { id: 'wp-5', category: 'المراقد المقدسة', title: 'الحرم العباسي', source: WALLPAPER_SOURCES['wp-5'] },
+  { id: 'wp-6', category: 'مناسبات', title: 'عيد الفطر', source: WALLPAPER_SOURCES['wp-6'] },
 ];
 
 export default function WallpapersScreen() {
@@ -28,14 +36,20 @@ export default function WallpapersScreen() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadedIds, setDownloadedIds] = useState<Set<string>>(new Set());
   const { data } = useWallpapers();
-  const wallpapers = Array.isArray(data) && data.length > 0 ? data.map((w) => ({ id: w.slug, category: w.category, title: w.title, imageUrl: w.imageUrl })) : FALLBACK_WALLPAPERS;
+  const wallpapers = Array.isArray(data) && data.length > 0
+    ? data.map((w) => {
+      const source = WALLPAPER_SOURCES[w.slug as keyof typeof WALLPAPER_SOURCES];
+      return source ? { id: w.slug, category: w.category, title: w.title, source } : null;
+    }).filter((item): item is NonNullable<typeof item> => item !== null)
+    : FALLBACK_WALLPAPERS;
   const visible = activeCategory === 'الكل' ? wallpapers : wallpapers.filter((item) => item.category === activeCategory);
 
-  const downloadWallpaper = async (id: string, imageUrl: string, title: string) => {
+  const downloadWallpaper = async (id: string, source: (typeof WALLPAPER_SOURCES)[keyof typeof WALLPAPER_SOURCES], title: string) => {
     try {
       setDownloadingId(id);
+      const imageUri = RNImage.resolveAssetSource(source).uri;
       if (Platform.OS === 'web') {
-        await Linking.openURL(imageUrl);
+        await Linking.openURL(imageUri);
         return;
       }
       if (Constants.appOwnership === 'expo') {
@@ -48,10 +62,10 @@ export default function WallpapersScreen() {
         Alert.alert('الإذن مطلوب', 'اسمح للتطبيق بالوصول إلى الصور لحفظ الخلفية.');
         return;
       }
-      const extension = imageUrl.toLowerCase().includes('.png') ? 'png' : 'jpg';
+      const extension = id === 'wp-3' ? 'png' : 'jpg';
       const localUri = `${FileSystem.cacheDirectory}salatak-${id}.${extension}`;
-      const result = await FileSystem.downloadAsync(imageUrl, localUri);
-      await MediaLibrary.createAssetAsync(result.uri);
+      await FileSystem.copyAsync({ from: imageUri, to: localUri });
+      await MediaLibrary.createAssetAsync(localUri);
       setDownloadedIds((current) => new Set(current).add(id));
       Alert.alert('تم الحفظ', `تم حفظ «${title}» في صور جهازك.`);
     } catch (error) {
@@ -75,8 +89,14 @@ export default function WallpapersScreen() {
             <Text style={styles.eyebrow}>معرض الصور</Text>
             <Text style={styles.title}>الخلفيات</Text>
           </View>
-          <View style={styles.headerIcon}>
-            <Feather name="image" size={19} color="#1F5A55" />
+          <View style={styles.headerActions}>
+            <Pressable onPress={() => router.push('/wallpaper-credits')} style={styles.creditsButton}>
+              <Feather name="info" size={14} color="#1F5A55" />
+              <Text style={styles.creditsText}>اعتمادات ({wallpaperCredits.length})</Text>
+            </Pressable>
+            <View style={styles.headerIcon}>
+              <Feather name="image" size={19} color="#1F5A55" />
+            </View>
           </View>
         </View>
 
@@ -94,8 +114,8 @@ export default function WallpapersScreen() {
 
         <View style={styles.grid}>
           {visible.map((item) => (
-            <Pressable key={item.id} style={styles.tile} onPress={() => void downloadWallpaper(item.id, item.imageUrl, item.title)}>
-              <Image source={{ uri: item.imageUrl }} style={styles.image} contentFit="cover" transition={200} />
+            <Pressable key={item.id} style={styles.tile} onPress={() => void downloadWallpaper(item.id, item.source, item.title)}>
+              <Image source={item.source} style={styles.image} contentFit="cover" transition={200} />
               <View style={styles.overlay}>
                 <Text style={styles.tileTitle}>{item.title}</Text>
               </View>
@@ -120,6 +140,9 @@ const styles = StyleSheet.create({
   backRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, alignSelf: 'flex-end', marginBottom: 10 },
   backText: { fontSize: 13, fontWeight: '600', color: '#6B7A74' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  creditsButton: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 7, borderRadius: 12, backgroundColor: '#E4EEE9' },
+  creditsText: { color: '#1F5A55', fontSize: 11, fontWeight: '600' },
   eyebrow: { textAlign: 'right', fontSize: 12, color: '#376762' },
   title: { fontSize: 28, fontWeight: '700', textAlign: 'right', marginTop: 6, color: '#173B3A' },
   headerIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E4EEE9' },
