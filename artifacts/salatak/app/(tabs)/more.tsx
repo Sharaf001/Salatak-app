@@ -1,12 +1,13 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Href, router } from 'expo-router';
-import React from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 import { notificationsSupported } from '@/hooks/usePrayerNotifications';
+import { MANUAL_CITIES, usePrayerTimes } from '@/hooks/usePrayerTimes';
 
 function ToolRow({
   icon,
@@ -34,7 +35,9 @@ function ToolRow({
 export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { rakahCount, incrementRakah, resetRakah, bookmarks, notificationsEnabled, toggleNotifications } = useSalatak();
+  const { rakahCount, incrementRakah, resetRakah, bookmarks, notificationsEnabled, toggleNotifications, selectedCity, setSelectedCity } = useSalatak();
+  const { coords, locationLabel } = usePrayerTimes(new Date(), selectedCity);
+  const [cityPickerOpen, setCityPickerOpen] = useState(false);
 
   const countRakah = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -106,9 +109,28 @@ export default function MoreScreen() {
               </Text>
             </View>
           </Pressable>
-          <View style={styles.settingRow}><View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Feather name="map-pin" size={17} color={colors.primary} /></View><Text style={[styles.settingText, { color: colors.deep }]}>الموقع</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>بيروت</Text></View>
+          <Pressable onPress={() => setCityPickerOpen(true)} style={styles.settingRow}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Feather name="map-pin" size={17} color={colors.primary} /></View>
+            <View style={styles.locationCopy}><Text style={[styles.settingText, { color: colors.deep }]}>الموقع</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>{selectedCity ? `${selectedCity.name}، ${selectedCity.country}` : locationLabel ?? (coords ? 'موقعك الحالي' : 'غير محدد')}</Text></View>
+            <Feather name="chevron-left" size={17} color={colors.mutedForeground} />
+          </Pressable>
         </View>
       </ScrollView>
+      <Modal visible={cityPickerOpen} transparent animationType="slide" onRequestClose={() => setCityPickerOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.deep }]}>اختر مدينتك</Text>
+            <Text style={[styles.modalSubtitle, { color: colors.mutedForeground }]}>تُستخدم المدينة للحساب عند تعذر الوصول إلى موقعك.</Text>
+            {MANUAL_CITIES.map((city) => (
+              <Pressable key={city.id} onPress={() => { setSelectedCity(city); setCityPickerOpen(false); }} style={[styles.cityRow, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.cityText, { color: colors.deep }]}>{city.name}، {city.country}</Text>
+                {selectedCity?.id === city.id && <Feather name="check" size={17} color={colors.primary} />}
+              </Pressable>
+            ))}
+            <Pressable onPress={() => setCityPickerOpen(false)} style={styles.cancelButton}><Text style={[styles.cancelText, { color: colors.primary }]}>إلغاء</Text></Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -151,4 +173,13 @@ const styles = StyleSheet.create({
   statusPill: { borderRadius: 9, paddingHorizontal: 8, paddingVertical: 5 },
   statusText: { fontSize: 10, fontWeight: '700' },
   settingValue: { fontSize: 11 },
+  locationCopy: { flex: 1 },
+  modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  modalCard: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 35 },
+  modalTitle: { fontSize: 20, fontWeight: '700', textAlign: 'right' },
+  modalSubtitle: { fontSize: 12, textAlign: 'right', marginTop: 6, marginBottom: 12 },
+  cityRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },
+  cityText: { fontSize: 15, textAlign: 'right' },
+  cancelButton: { alignItems: 'center', paddingTop: 18 },
+  cancelText: { fontSize: 15, fontWeight: '700' },
 });

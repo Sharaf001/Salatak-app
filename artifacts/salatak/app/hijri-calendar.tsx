@@ -8,18 +8,18 @@ import { gregorianToHijri, toArabicIndicDigits } from '@/hooks/useHijriDate';
 
 const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-function dateAtUtcMidnight(date: Date): Date {
-  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+function dateAtLocalNoon(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
 }
 
 function addDays(date: Date, days: number): Date {
   const result = new Date(date);
-  result.setUTCDate(result.getUTCDate() + days);
+  result.setDate(result.getDate() + days);
   return result;
 }
 
 function findMonthStart(date: Date): Date {
-  let current = dateAtUtcMidnight(date);
+  let current = dateAtLocalNoon(date);
   for (let offset = 0; offset < 32; offset += 1) {
     if (gregorianToHijri(current).day === 1) return current;
     current = addDays(current, -1);
@@ -49,14 +49,14 @@ function getMonthDays(monthStart: Date): Date[] {
 export default function HijriCalendarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const today = useMemo(() => dateAtUtcMidnight(new Date()), []);
+  const today = useMemo(() => dateAtLocalNoon(new Date()), []);
   const todayHijri = useMemo(() => gregorianToHijri(today), [today]);
   const currentMonthStart = useMemo(() => findMonthStart(today), [today]);
   const [monthOffset, setMonthOffset] = useState(0);
   const monthStart = useMemo(() => findHijriMonthStart(currentMonthStart, monthOffset), [currentMonthStart, monthOffset]);
   const monthDays = useMemo(() => getMonthDays(monthStart), [monthStart]);
   const month = gregorianToHijri(monthStart);
-  const leadingEmptyDays = monthStart.getUTCDay();
+  const leadingEmptyDays = monthStart.getDay();
   const cells = [...Array(leadingEmptyDays).fill(null), ...monthDays];
 
   const isToday = (date: Date) => date.getTime() === today.getTime();

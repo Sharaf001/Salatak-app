@@ -28,16 +28,6 @@ const PRAYER_ORDER: PrayerId[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 // Bundled fallback — used until location permission is granted / resolved,
 // or if it's ever denied. Beirut coordinates, matching this app's original
 // default city.
-const FALLBACK_TIMES: Record<PrayerId, string> = {
-  fajr: '04:38',
-  dhuhr: '12:43',
-  asr: '16:18',
-  maghrib: '19:21',
-  isha: '20:42',
-};
-const FALLBACK_LOCATION = 'بيروت، لبنان';
-const FALLBACK_SUNSET = '18:59';
-
 const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 const GREGORIAN_MONTHS = [
   'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
@@ -92,7 +82,7 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { completedPrayers, togglePrayer, notificationsEnabled } = useSalatak();
+  const { completedPrayers, togglePrayer, notificationsEnabled, selectedCity } = useSalatak();
 
   // Ticks every second so the countdown and "which prayer is next" stay live
   // without the person needing to reopen the screen.
@@ -102,22 +92,22 @@ export default function HomeScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  const { today, sunset, nextPrayer, locationLabel, coords } = usePrayerTimes(now);
+  const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity);
   usePrayerNotifications(coords, notificationsEnabled);
 
   const prayers = PRAYER_ORDER.map((id) => ({
     id,
     ...PRAYER_META[id],
-    time: today ? formatClock(today[id]) : FALLBACK_TIMES[id],
+    time: today ? formatClock(today[id]) : '--:--',
   }));
   const completedCount = prayers.filter((prayer) => completedPrayers[prayer.id]).length;
 
   const nextId: PrayerId = nextPrayer?.id ?? 'maghrib';
   const nextMeta = PRAYER_META[nextId];
-  const nextTimeLabel = nextPrayer ? formatClock(nextPrayer.time) : FALLBACK_TIMES.maghrib;
+  const nextTimeLabel = nextPrayer ? formatClock(nextPrayer.time) : '--:--';
   const countdownLabel = nextPrayer ? formatCountdown(nextPrayer.time.getTime() - now.getTime()) : '--:--:--';
-  const sunsetLabel = sunset ? formatClock(sunset) : FALLBACK_SUNSET;
-  const locationText = coords ? (locationLabel ?? 'موقعك الحالي') : FALLBACK_LOCATION;
+  const sunsetLabel = sunset ? formatClock(sunset) : '--:--';
+  const locationText = coords ? (locationLabel ?? 'موقعك الحالي') : 'لم يتم تحديد الموقع';
 
   // Progress through the gap between the previous and next prayer, for the
   // progress bar under the countdown. Falls back to a fixed value when we
@@ -159,6 +149,12 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
+        {!coords && !locationLoading && (
+          <Pressable onPress={() => open('/more')} style={[styles.warning, { backgroundColor: '#F6E8D8', borderColor: '#E4C79F' }]}>
+            <Feather name="alert-triangle" size={15} color={colors.accentForeground} />
+            <Text style={[styles.warningText, { color: colors.deep }]}>فعّل الموقع أو اختر مدينتك لعرض مواقيم دقيقة</Text>
+          </Pressable>
+        )}
         <View style={[styles.locationRow, { backgroundColor: colors.secondary }]}>
           <Ionicons name="location-outline" size={16} color={colors.primary} />
           <Text style={[styles.locationText, { color: colors.deepMuted }]}>{locationText}</Text>
@@ -259,7 +255,9 @@ const styles = StyleSheet.create({
   subGreeting: { fontSize: 13, marginTop: 3, textAlign: 'right' },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 21, fontWeight: '700' },
-  locationRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginTop: 18 },
+  warning: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 13, padding: 11, marginTop: 18 },
+  warningText: { flex: 1, textAlign: 'right', fontSize: 12, fontWeight: '600' },
+  locationRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginTop: 10 },
   locationText: { fontSize: 12, marginLeft: 5 },
   locationSpacer: { flex: 1 },
   hijriText: { fontSize: 11, marginRight: 4 },

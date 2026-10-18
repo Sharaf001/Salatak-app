@@ -31,6 +31,23 @@ export type PrayerTimesResult = {
   nextPrayer: { id: PrayerId; time: Date } | null;
 };
 
+export type ManualCity = {
+  id: string;
+  name: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+};
+
+export const MANUAL_CITIES: ManualCity[] = [
+  { id: 'beirut', name: 'بيروت', country: 'لبنان', latitude: 33.8938, longitude: 35.5018 },
+  { id: 'new-york', name: 'نيويورك', country: 'الولايات المتحدة', latitude: 40.7128, longitude: -74.006 },
+  { id: 'london', name: 'لندن', country: 'المملكة المتحدة', latitude: 51.5072, longitude: -0.1276 },
+  { id: 'toronto', name: 'تورنتو', country: 'كندا', latitude: 43.6532, longitude: -79.3832 },
+  { id: 'dubai', name: 'دبي', country: 'الإمارات', latitude: 25.2048, longitude: 55.2708 },
+  { id: 'sydney', name: 'سيدني', country: 'أستراليا', latitude: -33.8688, longitude: 151.2093 },
+];
+
 const PRAYER_ORDER: PrayerId[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
 function computeToday(coordinates: Coordinates, date: Date) {
@@ -54,12 +71,16 @@ function computeSunset(coordinates: Coordinates, date: Date) {
   return pt.maghrib;
 }
 
-export function usePrayerTimes(now: Date): PrayerTimesResult {
+export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null): PrayerTimesResult {
   const [loading, setLoading] = useState(true);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
 
   useEffect(() => {
+    if (manualCity) {
+      setLoading(false);
+      return undefined;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -94,9 +115,22 @@ export function usePrayerTimes(now: Date): PrayerTimesResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [manualCity]);
 
   return useMemo<PrayerTimesResult>(() => {
+    if (manualCity) {
+      const manualCoords = { latitude: manualCity.latitude, longitude: manualCity.longitude };
+      const coordinates = new Coordinates(manualCoords.latitude, manualCoords.longitude);
+      const today = computeToday(coordinates, now);
+      const sunset = computeSunset(coordinates, now);
+      let nextPrayer = PRAYER_ORDER.map((id) => ({ id, time: today[id] })).find((p) => p.time.getTime() > now.getTime()) ?? null;
+      if (!nextPrayer) {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        nextPrayer = { id: 'fajr', time: computeToday(coordinates, tomorrow).fajr };
+      }
+      return { loading: false, coords: manualCoords, locationLabel: `${manualCity.name}، ${manualCity.country}`, today, sunset, nextPrayer };
+    }
     if (!coords) {
       return { loading, coords: null, locationLabel: null, today: null, sunset: null, nextPrayer: null };
     }
@@ -115,5 +149,5 @@ export function usePrayerTimes(now: Date): PrayerTimesResult {
     }
 
     return { loading, coords, locationLabel, today, sunset, nextPrayer };
-  }, [coords, locationLabel, loading, now]);
+  }, [coords, locationLabel, loading, manualCity, now]);
 }

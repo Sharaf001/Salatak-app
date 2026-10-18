@@ -13,7 +13,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { SalatakProvider } from '@/providers/SalatakProvider';
+import { SalatakProvider, useSalatak } from '@/providers/SalatakProvider';
 import { initApiClient } from '@/constants/api';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -24,6 +24,8 @@ initApiClient();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
+  const { isReady } = useSalatak();
+  if (!isReady) return null;
   return (
     <Stack screenOptions={{ headerBackTitle: 'Back' }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

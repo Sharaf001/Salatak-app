@@ -11,6 +11,8 @@ export type SalatakState = {
   tasbihTarget: number;
   readAzkar: string[];
   notificationsEnabled: boolean;
+  stateDate: string;
+  selectedCity: { id: string; name: string; country: string; latitude: number; longitude: number } | null;
 };
 
 type SalatakContextValue = SalatakState & {
@@ -26,16 +28,19 @@ type SalatakContextValue = SalatakState & {
   toggleAzkarRead: (itemId: string) => void;
   isAzkarRead: (itemId: string) => boolean;
   toggleNotifications: () => void;
+  setSelectedCity: (city: NonNullable<SalatakState['selectedCity']>) => void;
 };
 
 const initialState: SalatakState = {
   completedPrayers: {},
-  bookmarks: ['surah-36'],
+  bookmarks: [],
   rakahCount: 0,
   tasbihCount: 0,
   tasbihTarget: 33,
   readAzkar: [],
   notificationsEnabled: true,
+  stateDate: '',
+  selectedCity: null,
 };
 
 const SalatakContext = createContext<SalatakContextValue | null>(null);
@@ -49,14 +54,30 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       .then((stored) => {
         if (stored) {
           try {
-            setState({ ...initialState, ...JSON.parse(stored) });
+            const saved = { ...initialState, ...JSON.parse(stored) } as SalatakState;
+            setState(saved.stateDate === getDayKey(new Date()) ? saved : { ...saved, ...dailyDefaults(), stateDate: getDayKey(new Date()) });
           } catch {
-            setState(initialState);
+            setState({ ...initialState, stateDate: getDayKey(new Date()) });
           }
         }
+        else setState({ ...initialState, stateDate: getDayKey(new Date()) });
       })
       .finally(() => setIsReady(true));
   }, []);
+
+  useEffect(() => {
+    if (!isReady) return undefined;
+    const timer = setInterval(() => {
+      const today = getDayKey(new Date());
+      setState((current) => {
+        if (current.stateDate === today) return current;
+        const next = { ...current, ...dailyDefaults(), stateDate: today };
+        void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, [isReady]);
 
   const persist = (next: SalatakState) => {
     setState(next);
@@ -96,11 +117,20 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       },
       isAzkarRead: (itemId) => state.readAzkar.includes(itemId),
       toggleNotifications: () => persist({ ...state, notificationsEnabled: !state.notificationsEnabled }),
+      setSelectedCity: (city) => persist({ ...state, selectedCity: city }),
     }),
     [isReady, state],
   );
 
   return <SalatakContext.Provider value={value}>{children}</SalatakContext.Provider>;
+}
+
+function getDayKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function dailyDefaults(): Pick<SalatakState, 'completedPrayers' | 'rakahCount' | 'readAzkar'> {
+  return { completedPrayers: {}, rakahCount: 0, readAzkar: [] };
 }
 
 export function useSalatak() {
