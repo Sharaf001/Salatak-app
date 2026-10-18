@@ -93,7 +93,7 @@ export default function MoreScreen() {
           <Pressable
             onPress={() => {
               if (!notificationsSupported) {
-                Alert.alert('يتطلب بناء تطوير', 'تنبيهات الصلاة تحتاج نسخة "development build" من التطبيق ولا تعمل داخل Expo Go على أندرويد. راسلنا للمزيد من التفاصيل.');
+                Alert.alert('يتطلب بناء تطوير', 'تنبيهات الصلاة لا تعمل داخل Expo Go على أندرويد. ثبّت نسخة development أو production مبنية عبر EAS، ثم افتح التطبيق من جديد.');
                 return;
               }
               void Haptics.selectionAsync();

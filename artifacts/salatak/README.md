@@ -42,5 +42,13 @@ The store privacy policy is available at
 
 6. To preview on a phone, install Expo Go and scan the QR code shown by Expo.
 
+Prayer notifications require an Android standalone build; they are not
+supported by Expo Go on Android. With EAS configured, build an installable
+preview APK with:
+
+```bash
+eas build --profile preview --platform android
+```
+
 The main app files are in `artifacts/salatak/app/`. Local app data such as bookmarks,
 completed prayers, and the rak'ah counter is stored with AsyncStorage.

@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import type { PrayerId } from './usePrayerTimes';
 import { computePrayerTimes } from './usePrayerTimes';
@@ -19,6 +19,7 @@ import { Coordinates } from 'adhan';
  * notifications — only classic Expo Go doesn't.
  */
 const isExpoGo = Constants.appOwnership === 'expo';
+const notificationsUnavailableInCurrentBuild = Platform.OS === 'android' && isExpoGo;
 
 const PRAYER_LABELS: Record<PrayerId, string> = {
   fajr: 'حان الآن وقت صلاة الفجر',
@@ -35,7 +36,7 @@ const NOTIFICATION_KIND = 'salatak-prayer';
  * uses this to tell the person why the toggle isn't doing anything, instead
  * of silently failing, when running inside Expo Go.
  */
-export const notificationsSupported = !isExpoGo;
+export const notificationsSupported = !notificationsUnavailableInCurrentBuild;
 
 /**
  * Schedules a local notification for every remaining prayer today and all
@@ -56,7 +57,7 @@ export function usePrayerNotifications(
   const [foregroundVersion, setForegroundVersion] = useState(0);
 
   useEffect(() => {
-    if (isExpoGo) return;
+    if (notificationsUnavailableInCurrentBuild) return;
 
     // Loaded lazily (only once we know we're not in Expo Go) so importing
     // this hook never touches the native module in an unsupported environment.
@@ -69,6 +70,15 @@ export function usePrayerNotifications(
         shouldSetBadge: false,
       }),
     });
+    if (Platform.OS === 'android') {
+      void Notifications.setNotificationChannelAsync('prayer-times', {
+        name: 'مواقيت الصلاة',
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: 'default',
+        vibrationPattern: [0, 250, 250, 250],
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      });
+    }
 
     if (!enabled || !coords) {
       void cancelPrayerNotifications(Notifications);
@@ -115,6 +125,7 @@ export function usePrayerNotifications(
               body: PRAYER_LABELS[prayer.id],
               sound: true,
               data: { kind: NOTIFICATION_KIND },
+              ...(Platform.OS === 'android' ? { channelId: 'prayer-times' } : {}),
             },
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.DATE,

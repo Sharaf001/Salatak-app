@@ -13,6 +13,9 @@
     },
     "android": {
       "package": "com.sharaf001.salatakprayer",
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#F7F3EA"
