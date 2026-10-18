@@ -1,7 +1,9 @@
 import Constants from 'expo-constants';
-import { useEffect, useRef } from 'react';
-import { Coordinates, CalculationMethod, Madhab, PrayerTimes } from 'adhan';
+import { AppState } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 import type { PrayerId } from './usePrayerTimes';
+import { computePrayerTimes } from './usePrayerTimes';
+import { Coordinates } from 'adhan';
 
 /**
  * expo-notifications' Android implementation is not available at all when
@@ -26,13 +28,7 @@ const PRAYER_LABELS: Record<PrayerId, string> = {
   isha: 'حان الآن وقت صلاة العشاء',
 };
 const PRAYER_ORDER: PrayerId[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
-
-function computeDay(coordinates: Coordinates, date: Date) {
-  const params = CalculationMethod.Tehran();
-  params.madhab = Madhab.Shafi;
-  const pt = new PrayerTimes(coordinates, date, params);
-  return { fajr: pt.fajr, dhuhr: pt.dhuhr, asr: pt.asr, maghrib: pt.maghrib, isha: pt.isha };
-}
+const NOTIFICATION_KIND = 'salatak-prayer';
 
 /**
  * Whether this build can actually schedule notifications. The "More" screen
@@ -54,8 +50,10 @@ export const notificationsSupported = !isExpoGo;
 export function usePrayerNotifications(
   coords: { latitude: number; longitude: number } | null,
   enabled: boolean,
+  today: Record<PrayerId, Date> | null,
 ) {
   const lastScheduledDay = useRef<string | null>(null);
+  const [foregroundVersion, setForegroundVersion] = useState(0);
 
   useEffect(() => {
     if (isExpoGo) return;
@@ -73,7 +71,7 @@ export function usePrayerNotifications(
     });
 
     if (!enabled || !coords) {
-      void Notifications.cancelAllScheduledNotificationsAsync();
+      void cancelPrayerNotifications(Notifications);
       lastScheduledDay.current = null;
       return;
     }
@@ -82,24 +80,32 @@ export function usePrayerNotifications(
     if (lastScheduledDay.current === todayKey) return; // already scheduled for today
 
     let cancelled = false;
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        lastScheduledDay.current = null;
+        setForegroundVersion((version) => version + 1);
+      }
+    });
     (async () => {
       try {
         const { status } = await Notifications.requestPermissionsAsync();
         if (status !== 'granted' || cancelled) return;
 
-        await Notifications.cancelAllScheduledNotificationsAsync();
-
-        const coordinates = new Coordinates(coords.latitude, coords.longitude);
+        await cancelPrayerNotifications(Notifications);
         const now = new Date();
-        const today = computeDay(coordinates, now);
-        const tomorrowDate = new Date(now);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-        const tomorrow = computeDay(coordinates, tomorrowDate);
-
-        const upcoming: { id: PrayerId; time: Date }[] = [
-          ...PRAYER_ORDER.map((id) => ({ id, time: today[id] })).filter((p) => p.time.getTime() > now.getTime()),
-          ...PRAYER_ORDER.map((id) => ({ id, time: tomorrow[id] })),
-        ];
+        if (!today) return;
+        const coordinates = new Coordinates(coords.latitude, coords.longitude);
+        const upcoming: { id: PrayerId; time: Date }[] = PRAYER_ORDER
+          .map((id) => ({ id, time: today[id] }))
+          .filter((p) => p.time.getTime() > now.getTime());
+        for (let offset = 1; offset <= 7; offset += 1) {
+          const date = new Date(now);
+          date.setDate(date.getDate() + offset);
+          const prayerTimes = computePrayerTimes(coordinates, date);
+          for (const prayer of PRAYER_ORDER) {
+            upcoming.push({ id: prayer, time: prayerTimes[prayer] });
+          }
+        }
 
         for (const prayer of upcoming) {
           if (cancelled) return;
@@ -108,6 +114,7 @@ export function usePrayerNotifications(
               title: 'صلاتك',
               body: PRAYER_LABELS[prayer.id],
               sound: true,
+              data: { kind: NOTIFICATION_KIND },
             },
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -125,6 +132,16 @@ export function usePrayerNotifications(
 
     return () => {
       cancelled = true;
+      appStateSubscription.remove();
     };
-  }, [coords?.latitude, coords?.longitude, enabled]);
+  }, [coords?.latitude, coords?.longitude, enabled, today, foregroundVersion]);
+}
+
+async function cancelPrayerNotifications(Notifications: typeof import('expo-notifications')) {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    scheduled
+      .filter((item) => item.content.data && (item.content.data as { kind?: string }).kind === NOTIFICATION_KIND)
+      .map((item) => Notifications.cancelScheduledNotificationAsync(item.identifier)),
+  );
 }

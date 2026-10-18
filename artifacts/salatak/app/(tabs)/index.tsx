@@ -93,7 +93,7 @@ export default function HomeScreen() {
   }, []);
 
   const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity);
-  usePrayerNotifications(coords, notificationsEnabled);
+  usePrayerNotifications(coords, notificationsEnabled, today);
 
   const prayers = PRAYER_ORDER.map((id) => ({
     id,

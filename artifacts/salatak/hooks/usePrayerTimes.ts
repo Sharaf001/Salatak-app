@@ -50,7 +50,7 @@ export const MANUAL_CITIES: ManualCity[] = [
 
 const PRAYER_ORDER: PrayerId[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
-function computeToday(coordinates: Coordinates, date: Date) {
+export function computePrayerTimes(coordinates: Coordinates, date: Date) {
   const params = CalculationMethod.Tehran();
   params.madhab = Madhab.Shafi;
   const pt = new PrayerTimes(coordinates, date, params);
@@ -117,17 +117,18 @@ export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null):
     };
   }, [manualCity]);
 
+  const minuteKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}`;
   return useMemo<PrayerTimesResult>(() => {
     if (manualCity) {
       const manualCoords = { latitude: manualCity.latitude, longitude: manualCity.longitude };
       const coordinates = new Coordinates(manualCoords.latitude, manualCoords.longitude);
-      const today = computeToday(coordinates, now);
+      const today = computePrayerTimes(coordinates, now);
       const sunset = computeSunset(coordinates, now);
       let nextPrayer = PRAYER_ORDER.map((id) => ({ id, time: today[id] })).find((p) => p.time.getTime() > now.getTime()) ?? null;
       if (!nextPrayer) {
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        nextPrayer = { id: 'fajr', time: computeToday(coordinates, tomorrow).fajr };
+        nextPrayer = { id: 'fajr', time: computePrayerTimes(coordinates, tomorrow).fajr };
       }
       return { loading: false, coords: manualCoords, locationLabel: `${manualCity.name}، ${manualCity.country}`, today, sunset, nextPrayer };
     }
@@ -136,7 +137,7 @@ export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null):
     }
 
     const coordinates = new Coordinates(coords.latitude, coords.longitude);
-    const today = computeToday(coordinates, now);
+    const today = computePrayerTimes(coordinates, now);
     const sunset = computeSunset(coordinates, now);
 
     let nextPrayer = PRAYER_ORDER.map((id) => ({ id, time: today[id] })).find((p) => p.time.getTime() > now.getTime()) ?? null;
@@ -144,10 +145,10 @@ export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null):
     if (!nextPrayer) {
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowTimes = computeToday(coordinates, tomorrow);
+      const tomorrowTimes = computePrayerTimes(coordinates, tomorrow);
       nextPrayer = { id: 'fajr', time: tomorrowTimes.fajr };
     }
 
     return { loading, coords, locationLabel, today, sunset, nextPrayer };
-  }, [coords, locationLabel, loading, manualCity, now]);
+  }, [coords, locationLabel, loading, manualCity, minuteKey]);
 }

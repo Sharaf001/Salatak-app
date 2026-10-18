@@ -98,7 +98,15 @@ export default function BookmarksScreen() {
         {savedItems.length > 0 ? (
           <View style={styles.list}>
             {savedItems.map((item) => (
-              <View key={item.id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Pressable
+                key={item.id}
+                onPress={() => {
+                  if (item.id.startsWith('surah-')) router.push({ pathname: '/(tabs)/quran', params: { surah: item.id } });
+                  else if (item.id.startsWith('dua-')) router.push(`/dua/${item.id.replace(/^dua-/, '')}`);
+                  else if (item.id.startsWith('ziyarat-')) router.push('/ziyarat');
+                }}
+                style={({ pressed }) => [styles.card, { backgroundColor: colors.card, borderColor: colors.border }, pressed && { opacity: 0.72 }]}
+              >
                 <View style={[styles.icon, { backgroundColor: colors.secondary }]}>
                   <Feather name={item.icon} size={17} color={colors.primary} />
                 </View>
@@ -110,7 +118,7 @@ export default function BookmarksScreen() {
                 <Pressable onPress={() => toggleBookmark(item.id)} hitSlop={10} style={styles.removeButton}>
                   <Feather name="bookmark" size={18} color={colors.gold} />
                 </Pressable>
-              </View>
+              </Pressable>
             ))}
           </View>
         ) : (

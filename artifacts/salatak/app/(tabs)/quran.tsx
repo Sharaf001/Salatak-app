@@ -1,7 +1,8 @@
 import { Feather } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
+  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
 import { useColors } from '@/hooks/useColors';
@@ -174,9 +176,11 @@ function prepareReader(n: number, raw: string[]): { bismillah: boolean; verses: 
 export default function QuranScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { toggleBookmark, isBookmarked } = useSalatak();
+  const { toggleBookmark, isBookmarked, lastReadSurah, setLastReadSurah } = useSalatak();
+  const { surah: requestedSurah } = useLocalSearchParams<{ surah?: string }>();
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const readerListRef = useRef<FlatList<string>>(null);
   const { data } = useSurahs();
   const surahs =
     Array.isArray(data) && data.length > 0
@@ -192,24 +196,73 @@ export default function QuranScreen() {
         }))
       : SURAH_INDEX.map((s) => ({ ...s, readerVerses: versesFor(s.n) }));
   const filtered = useMemo(
-    () => surahs.filter((surah) => `${surah.name} ${surah.english}`.toLowerCase().includes(query.toLowerCase())),
+    () => surahs.filter((surah) => {
+      const needle = query.toLowerCase().trim();
+      if (!needle) return true;
+      return `${surah.name} ${surah.english} ${surah.excerpt} ${surah.readerVerses.join(' ')}`.toLowerCase().includes(needle);
+    }),
     [query, surahs],
   );
   const selected = surahs.find((surah) => surah.id === selectedId);
+  useEffect(() => {
+    if (typeof requestedSurah === 'string' && surahs.some((surah) => surah.id === requestedSurah)) {
+      setSelectedId(requestedSurah);
+    }
+  }, [requestedSurah, surahs]);
+  useEffect(() => {
+    if (selectedId && selectedId !== lastReadSurah) {
+      setLastReadSurah(selectedId);
+      requestAnimationFrame(() => readerListRef.current?.scrollToOffset({ offset: 0, animated: false }));
+    }
+  }, [lastReadSurah, selectedId, setLastReadSurah]);
   const reader = selected
     ? prepareReader(Number(selected.id.replace('surah-', '')), selected.readerVerses)
     : { bismillah: false, verses: [] as string[] };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
+      {selected ? (
+        <FlatList
+          ref={readerListRef}
+          data={reader.verses}
+          keyExtractor={(_, index) => `${selected.id}-${index}`}
+          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+          ListHeaderComponent={
+            <View style={[styles.readerCard, { backgroundColor: colors.deep }]}>
+              <View style={styles.readerHeader}>
+                <Pressable onPress={() => setSelectedId(null)} hitSlop={12}><Feather name="chevron-right" size={20} color="#B6D2CB" /></Pressable>
+                <View style={styles.readerTitle}><Text style={styles.readerSurah}>{selected.name}</Text><Text style={styles.readerMeta}>{selected.english} · {selected.verses} آيات</Text></View>
+                <Pressable onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? '#E8C77D' : '#B6D2CB'} /></Pressable>
+              </View>
+              {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
+            </View>
+          }
+          renderItem={({ item, index }) => (
+            <View style={[styles.verseRow, { backgroundColor: colors.deep }]}>
+              <Text style={styles.verseNumber}>{index + 1}</Text>
+              <Text style={styles.verseText}>{item}</Text>
+            </View>
+          )}
+          ListFooterComponent={
+            <View style={[styles.readerFooter, { backgroundColor: colors.deep }]}>
+              <Text style={styles.readerFooterText}>{selected.verses} آية</Text><Text style={styles.readerFooterText}>{selected.type}</Text>
+            </View>
+          }
+        />
+      ) : <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
         <View style={styles.header}>
           <View>
             <Text style={[styles.eyebrow, { color: colors.deepMuted }]}>القراءة والتدبر</Text>
             <Text style={[styles.title, { color: colors.deep }]}>القرآن الكريم</Text>
           </View>
-          <Pressable style={[styles.headerIcon, { backgroundColor: colors.secondary }]} onPress={() => toggleBookmark('surah-36')}>
-            <Feather name="bookmark" size={19} color={colors.primary} />
+          <Pressable
+            style={[styles.headerIcon, { backgroundColor: colors.secondary }]}
+            onPress={() => {
+              const target = selectedId ?? lastReadSurah ?? surahs[0]?.id;
+              if (target) toggleBookmark(target);
+            }}
+          >
+            <Feather name="bookmark" size={19} color={isBookmarked(selectedId ?? lastReadSurah ?? '') ? colors.gold : colors.primary} />
           </Pressable>
         </View>
 
@@ -225,42 +278,12 @@ export default function QuranScreen() {
           />
         </View>
 
-        {selected ? (
-          <View style={[styles.readerCard, { backgroundColor: colors.deep }]}>
-            <View style={styles.readerHeader}>
-              <Pressable onPress={() => setSelectedId(null)} hitSlop={12}>
-                <Feather name="chevron-right" size={20} color="#B6D2CB" />
-              </Pressable>
-              <View style={styles.readerTitle}>
-                <Text style={styles.readerSurah}>{selected.name}</Text>
-                <Text style={styles.readerMeta}>{selected.english} · {selected.verses} آيات</Text>
-              </View>
-              <Pressable onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}>
-                <Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? '#E8C77D' : '#B6D2CB'} />
-              </Pressable>
-            </View>
-            <View style={styles.verseList}>
-              {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
-              {reader.verses.map((verse, index) => (
-                <View key={index} style={styles.verseRow}>
-                  <Text style={styles.verseNumber}>{index + 1}</Text>
-                  <Text style={styles.verseText}>{verse}</Text>
-                </View>
-              ))}
-            </View>
-            <View style={styles.readerFooter}>
-              <Text style={styles.readerFooterText}>{selected.verses} آية</Text>
-              <Text style={styles.readerFooterText}>{selected.type}</Text>
-            </View>
-          </View>
-        ) : (
-          <>
-            <Pressable onPress={() => setSelectedId('surah-36')} style={[styles.continueCard, { backgroundColor: colors.cream, borderColor: '#EBD9A8' }]}>
+            <Pressable onPress={() => setSelectedId(lastReadSurah ?? surahs[0]?.id ?? null)} style={[styles.continueCard, { backgroundColor: colors.cream, borderColor: '#EBD9A8' }]}>
               <View style={[styles.continueIcon, { backgroundColor: '#E9D29C' }]}><Feather name="play" size={16} color={colors.accentForeground} /></View>
               <View style={styles.continueCopy}>
                 <Text style={[styles.continueLabel, { color: colors.deepMuted }]}>متابعة القراءة</Text>
-                <Text style={[styles.continueTitle, { color: colors.deep }]}>سورة يس</Text>
-                <Text style={[styles.continueMeta, { color: colors.deepMuted }]}>٨٣ آية · مكية</Text>
+                <Text style={[styles.continueTitle, { color: colors.deep }]}>{surahs.find((surah) => surah.id === lastReadSurah)?.name ?? 'ابدأ القراءة'}</Text>
+                <Text style={[styles.continueMeta, { color: colors.deepMuted }]}>{surahs.find((surah) => surah.id === lastReadSurah)?.verses ?? 0} آية</Text>
               </View>
               <Text style={[styles.continueProgress, { color: colors.accentForeground }]}>افتح</Text>
             </Pressable>
@@ -286,9 +309,7 @@ export default function QuranScreen() {
                 </Pressable>
               ))}
             </View>
-          </>
-        )}
-      </ScrollView>
+      </ScrollView>}
     </SafeAreaView>
   );
 }

@@ -13,6 +13,7 @@ export type SalatakState = {
   notificationsEnabled: boolean;
   stateDate: string;
   selectedCity: { id: string; name: string; country: string; latitude: number; longitude: number } | null;
+  lastReadSurah: string | null;
 };
 
 type SalatakContextValue = SalatakState & {
@@ -29,6 +30,7 @@ type SalatakContextValue = SalatakState & {
   isAzkarRead: (itemId: string) => boolean;
   toggleNotifications: () => void;
   setSelectedCity: (city: NonNullable<SalatakState['selectedCity']>) => void;
+  setLastReadSurah: (surahId: string) => void;
 };
 
 const initialState: SalatakState = {
@@ -41,6 +43,7 @@ const initialState: SalatakState = {
   notificationsEnabled: true,
   stateDate: '',
   selectedCity: null,
+  lastReadSurah: null,
 };
 
 const SalatakContext = createContext<SalatakContextValue | null>(null);
@@ -118,6 +121,7 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       isAzkarRead: (itemId) => state.readAzkar.includes(itemId),
       toggleNotifications: () => persist({ ...state, notificationsEnabled: !state.notificationsEnabled }),
       setSelectedCity: (city) => persist({ ...state, selectedCity: city }),
+      setLastReadSurah: (surahId) => persist({ ...state, lastReadSurah: surahId }),
     }),
     [isReady, state],
   );

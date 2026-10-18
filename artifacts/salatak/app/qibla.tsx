@@ -48,6 +48,10 @@ export default function QiblaScreen() {
           setHeading(nextHeading);
           setHeadingAccuracy(reading.accuracy);
         });
+        if (cancelled) {
+          subscription.remove();
+          subscription = null;
+        }
       } catch (cause) {
         if (!cancelled) {
           setError(cause instanceof Error ? cause.message : 'تعذر تحديد موقعك. تحقق من تفعيل خدمات الموقع ثم حاول مرة أخرى.');
