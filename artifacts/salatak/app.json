@@ -1,22 +1,38 @@
 {
   "expo": {
-    "name": "Salatak / صلاتك",
-    "slug": "salatak",
+    "name": "Salatak Prayer Times",
+    "slug": "salatak-prayer-times",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "salatak",
+    "scheme": "salatakprayer",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.sharaf001.salatakprayer",
       "supportsTablet": false
     },
-    "android": {},
+    "android": {
+      "package": "com.sharaf001.salatakprayer",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#F7F3EA"
+      }
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
     "plugins": [
       "expo-router",
       "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F7F3EA",
+          "image": "./assets/images/icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ],
       [
         "expo-media-library",
         {
@@ -37,6 +53,9 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "privacyPolicyUrl": "https://github.com/Sharaf001/Salatak-app/blob/main/PRIVACY.md"
     }
   }
 }

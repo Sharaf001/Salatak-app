@@ -2,6 +2,17 @@
 
 This is the editable Expo mobile app source for Salatak.
 
+## Store identity
+
+The native application identifiers are:
+
+- iOS: `com.sharaf001.salatakprayer`
+- Android: `com.sharaf001.salatakprayer`
+
+The store privacy policy is available at
+[PRIVACY.md](../../PRIVACY.md). The EAS build profiles are defined in
+[`eas.json`](./eas.json).
+
 ## Open on a PC
 
 1. Install Node.js 20 or newer.
