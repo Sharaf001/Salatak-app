@@ -84,7 +84,7 @@ export default function WallpapersScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
+        <Pressable accessibilityRole="button" accessibilityLabel="العودة" onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
           <Feather name="chevron-right" size={16} color="#6B7A74" />
           <Text style={styles.backText}>رجوع</Text>
         </Pressable>

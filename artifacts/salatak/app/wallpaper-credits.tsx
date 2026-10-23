@@ -27,7 +27,7 @@ export default function WallpaperCreditsScreen() {
           { paddingBottom: insets.bottom + 32 },
         ]}
       >
-        <Pressable
+        <Pressable accessibilityRole="button" accessibilityLabel="العودة"
           onPress={() => router.back()}
           style={styles.backRow}
           hitSlop={10}

@@ -55,7 +55,7 @@ export default function DuasScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.filters, { flexDirection: 'row-reverse' }]}>
           {categories.map((category) => (
-            <Pressable key={category} onPress={() => setActiveCategory(category)} style={[styles.filter, { backgroundColor: activeCategory === category ? colors.primary : colors.card, borderColor: activeCategory === category ? colors.primary : colors.border }]}>
+            <Pressable accessibilityRole="tab" accessibilityLabel={`عرض أدعية ${category}`} key={category} onPress={() => setActiveCategory(category)} style={[styles.filter, { backgroundColor: activeCategory === category ? colors.primary : colors.card, borderColor: activeCategory === category ? colors.primary : colors.border }]}>
               <Text style={[styles.filterText, { color: activeCategory === category ? colors.white : colors.deepMuted }]}>{category}</Text>
             </Pressable>
           ))}
@@ -70,17 +70,17 @@ export default function DuasScreen() {
           {visibleDuas.map((dua, index) => {
             const saved = isBookmarked(dua.id);
             return (
-              <Pressable key={dua.id} onPress={() => router.push({ pathname: '/dua/[id]', params: { id: dua.id } })} style={[styles.duaCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Pressable accessibilityRole="button" accessibilityLabel={`فتح دعاء ${dua.title}`} key={dua.id} onPress={() => router.push({ pathname: '/dua/[id]', params: { id: dua.id } })} style={[styles.duaCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={styles.duaTop}>
                   <View style={[styles.duaIndex, { backgroundColor: index === 0 ? '#F3E5C5' : colors.secondary }]}><Text style={[styles.duaIndexText, { color: index === 0 ? colors.accentForeground : colors.primary }]}>٠{index + 1}</Text></View>
                   <View style={styles.duaTitleWrap}><Text style={[styles.duaTitle, { color: colors.deep }]}>{dua.title}</Text><Text style={[styles.duaCount, { color: colors.mutedForeground }]}>{dua.count}</Text></View>
-                  <Pressable onPress={() => { void Haptics.selectionAsync(); toggleBookmark(dua.id); }} hitSlop={10}><Feather name={saved ? 'bookmark' : 'bookmark'} size={18} color={saved ? colors.gold : colors.mutedForeground} /></Pressable>
+                  <Pressable accessibilityRole="button" accessibilityLabel={saved ? 'إزالة الدعاء من المحفوظات' : 'حفظ الدعاء'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(dua.id); }} hitSlop={10}><Feather name={saved ? 'bookmark' : 'bookmark'} size={18} color={saved ? colors.gold : colors.mutedForeground} /></Pressable>
                 </View>
                 <Text style={[styles.duaBody, { color: colors.deepMuted }]} numberOfLines={2}>{dua.body.split('\n')[0]}</Text>
                 <Text style={[styles.readMore, { color: colors.primary }]}>اضغط لقراءة الدعاء كاملاً</Text>
                 <View style={[styles.duaBottom, { borderTopColor: colors.border }]}>
                   <Text style={[styles.duaCategory, { color: colors.primary }]}>{dua.category}</Text>
-                  <Pressable onPress={() => { void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); }} style={[styles.doneButton, { backgroundColor: saved ? colors.secondary : colors.cream }]}><Feather name="check" size={14} color={colors.primary} /><Text style={[styles.doneText, { color: colors.primary }]}>تمت القراءة</Text></Pressable>
+                  <Pressable accessibilityRole="button" accessibilityLabel="تحديد الدعاء كمقروء" onPress={() => { void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); }} style={[styles.doneButton, { backgroundColor: saved ? colors.secondary : colors.cream }]}><Feather name="check" size={14} color={colors.primary} /><Text style={[styles.doneText, { color: colors.primary }]}>تمت القراءة</Text></Pressable>
                 </View>
               </Pressable>
             );

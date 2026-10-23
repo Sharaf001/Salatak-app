@@ -230,22 +230,22 @@ export default function QuranScreen() {
           ListHeaderComponent={
             <View style={[styles.readerCard, { backgroundColor: colors.deep }]}>
               <View style={styles.readerHeader}>
-                <Pressable onPress={() => setSelectedId(null)} hitSlop={12}><Feather name="chevron-right" size={20} color="#B6D2CB" /></Pressable>
-                <View style={styles.readerTitle}><Text style={styles.readerSurah}>{selected.name}</Text><Text style={styles.readerMeta}>{selected.english} · {selected.verses} آيات</Text></View>
-                <Pressable onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? '#E8C77D' : '#B6D2CB'} /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel="العودة إلى قائمة السور" onPress={() => setSelectedId(null)} hitSlop={12}><Feather name="chevron-right" size={20} color={colors.mutedForeground} /></Pressable>
+                <View style={styles.readerTitle}>                <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text><Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text></View>
+                <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
               </View>
               {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
             </View>
           }
           renderItem={({ item, index }) => (
-            <View style={[styles.verseRow, { backgroundColor: colors.deep }]}>
-              <Text style={styles.verseNumber}>{index + 1}</Text>
-              <Text style={styles.verseText}>{item}</Text>
+            <View style={[styles.verseRow, { backgroundColor: colors.deep, borderBottomColor: colors.border }]}>
+              <Text style={[styles.verseNumber, { color: colors.gold }]}>{index + 1}</Text>
+              <Text style={[styles.verseText, { color: colors.primaryForeground }]}>{item}</Text>
             </View>
           )}
           ListFooterComponent={
             <View style={[styles.readerFooter, { backgroundColor: colors.deep }]}>
-              <Text style={styles.readerFooterText}>{selected.verses} آية</Text><Text style={styles.readerFooterText}>{selected.type}</Text>
+              <Text style={[styles.readerFooterText, { color: colors.deepMuted }]}>{selected.verses} آية</Text><Text style={[styles.readerFooterText, { color: colors.deepMuted }]}>{selected.type}</Text>
             </View>
           }
         />
@@ -256,6 +256,8 @@ export default function QuranScreen() {
             <Text style={[styles.title, { color: colors.deep }]}>القرآن الكريم</Text>
           </View>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="حفظ السورة الحالية"
             style={[styles.headerIcon, { backgroundColor: colors.secondary }]}
             onPress={() => {
               const target = selectedId ?? lastReadSurah ?? surahs[0]?.id;
@@ -278,8 +280,8 @@ export default function QuranScreen() {
           />
         </View>
 
-            <Pressable onPress={() => setSelectedId(lastReadSurah ?? surahs[0]?.id ?? null)} style={[styles.continueCard, { backgroundColor: colors.cream, borderColor: '#EBD9A8' }]}>
-              <View style={[styles.continueIcon, { backgroundColor: '#E9D29C' }]}><Feather name="play" size={16} color={colors.accentForeground} /></View>
+            <Pressable accessibilityRole="button" accessibilityLabel="متابعة قراءة القرآن" onPress={() => setSelectedId(lastReadSurah ?? surahs[0]?.id ?? null)} style={[styles.continueCard, { backgroundColor: colors.cream, borderColor: colors.accent }]}>
+              <View style={[styles.continueIcon, { backgroundColor: colors.accent }]}><Feather name="play" size={16} color={colors.accentForeground} /></View>
               <View style={styles.continueCopy}>
                 <Text style={[styles.continueLabel, { color: colors.deepMuted }]}>متابعة القراءة</Text>
                 <Text style={[styles.continueTitle, { color: colors.deep }]}>{surahs.find((surah) => surah.id === lastReadSurah)?.name ?? 'ابدأ القراءة'}</Text>
@@ -296,6 +298,8 @@ export default function QuranScreen() {
               {filtered.map((surah) => (
                 <Pressable
                   key={surah.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`فتح سورة ${surah.name}`}
                   onPress={() => setSelectedId(surah.id)}
                   style={({ pressed }) => [styles.surahRow, { backgroundColor: colors.card, borderColor: colors.border }, pressed && { opacity: 0.72 }]}
                 >
@@ -344,13 +348,13 @@ const styles = StyleSheet.create({
   readerCard: { borderRadius: 22, padding: 17 },
   readerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   readerTitle: { alignItems: 'center' },
-  readerSurah: { color: '#FFF9ED', fontSize: 23, fontWeight: '700' },
-  readerMeta: { color: '#9EBBB4', fontSize: 11, marginTop: 3 },
+  readerSurah: { fontSize: 23, fontWeight: '700', fontFamily: 'Amiri_400Regular' },
+  readerMeta: { fontSize: 11, marginTop: 3 },
   verseList: { marginTop: 22 },
-  bismillah: { color: '#E8C77D', fontSize: 23, lineHeight: 40, textAlign: 'center', paddingVertical: 14 },
-  verseRow: { flexDirection: 'row-reverse', alignItems: 'flex-start', paddingVertical: 13, borderBottomColor: '#376762', borderBottomWidth: StyleSheet.hairlineWidth },
-  verseNumber: { color: '#D7A84C', fontSize: 12, width: 22, textAlign: 'center', marginTop: 5 },
-  verseText: { color: '#FFF9ED', fontSize: 19, lineHeight: 35, textAlign: 'right', flex: 1 },
+  bismillah: { fontSize: 25, lineHeight: 44, textAlign: 'center', paddingVertical: 14, fontFamily: 'Amiri_400Regular' },
+  verseRow: { flexDirection: 'row-reverse', alignItems: 'flex-start', paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth },
+  verseNumber: { fontSize: 12, width: 22, textAlign: 'center', marginTop: 5 },
+  verseText: { fontSize: 22, lineHeight: 40, textAlign: 'right', flex: 1, fontFamily: 'Amiri_400Regular' },
   readerFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
-  readerFooterText: { color: '#9EBBB4', fontSize: 11 },
+  readerFooterText: { fontSize: 11 },
 });

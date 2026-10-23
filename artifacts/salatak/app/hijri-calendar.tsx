@@ -66,7 +66,7 @@ export default function HijriCalendarScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 35 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
+        <Pressable accessibilityRole="button" accessibilityLabel="العودة" onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
           <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
           <Text style={[styles.backText, { color: colors.mutedForeground }]}>رجوع</Text>
         </Pressable>

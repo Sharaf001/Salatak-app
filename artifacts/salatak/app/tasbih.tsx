@@ -2,6 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -27,7 +28,7 @@ export default function TasbihScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.content, { paddingBottom: insets.bottom + 30 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
+        <Pressable accessibilityRole="button" accessibilityLabel="العودة" onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
           <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
           <Text style={[styles.backText, { color: colors.mutedForeground }]}>رجوع</Text>
         </Pressable>
@@ -44,6 +45,8 @@ export default function TasbihScreen() {
         <View style={styles.targetRow}>
           {targets.map((target) => (
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`اختيار هدف ${target} تسبيحة`}
               key={target}
               onPress={() => {
                 void Haptics.selectionAsync();
@@ -60,18 +63,24 @@ export default function TasbihScreen() {
         </View>
 
         <View style={styles.counterWrap}>
-          <View style={[styles.ring, { borderColor: colors.secondary }]}>
-            <View
-              style={[
-                styles.ringFill,
-                {
-                  borderColor: colors.primary,
-                  borderTopColor: progress < 1 ? colors.primary : colors.gold,
-                  transform: [{ rotate: `${progress * 360}deg` }],
-                },
-              ]}
-            />
-            <Pressable onPress={tap} style={styles.ringCenter}>
+          <View style={styles.ring}>
+            <Svg width={220} height={220} style={StyleSheet.absoluteFill}>
+              <Circle cx="110" cy="110" r="100" stroke={colors.secondary} strokeWidth="10" fill="none" />
+              <Circle
+                cx="110"
+                cy="110"
+                r="100"
+                stroke={progress === 1 ? colors.gold : colors.primary}
+                strokeWidth="10"
+                strokeLinecap="round"
+                fill="none"
+                strokeDasharray={`${2 * Math.PI * 100}`}
+                strokeDashoffset={`${2 * Math.PI * 100 * (1 - progress)}`}
+                rotation="-90"
+                origin="110, 110"
+              />
+            </Svg>
+            <Pressable accessibilityRole="button" accessibilityLabel="زيادة عداد التسبيح" onPress={tap} style={styles.ringCenter}>
               <Text style={[styles.countText, { color: colors.deep }]}>{tasbihCount % tasbihTarget || (tasbihCount > 0 && progress === 1 ? tasbihTarget : 0)}</Text>
               <Text style={[styles.countOf, { color: colors.mutedForeground }]}>من {tasbihTarget}</Text>
             </Pressable>
@@ -82,11 +91,13 @@ export default function TasbihScreen() {
           إجمالي التسبيح: {tasbihCount}{cycles > 0 ? ` · ${cycles} دورة مكتملة` : ''}
         </Text>
 
-        <Pressable onPress={tap} style={[styles.tapButton, { backgroundColor: colors.primary }]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="تسبيح" onPress={tap} style={[styles.tapButton, { backgroundColor: colors.primary }]}>
           <Text style={styles.tapButtonText}>سبّح</Text>
         </Pressable>
 
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="تصفير عداد التسبيح"
           onPress={() => {
             void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             resetTasbih();
@@ -114,8 +125,7 @@ const styles = StyleSheet.create({
   targetChip: { minWidth: 56, height: 36, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
   targetText: { fontSize: 13, fontWeight: '700' },
   counterWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  ring: { width: 220, height: 220, borderRadius: 110, borderWidth: 10, alignItems: 'center', justifyContent: 'center' },
-  ringFill: { position: 'absolute', width: 220, height: 220, borderRadius: 110, borderWidth: 10, borderLeftColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: 'transparent' },
+  ring: { width: 220, height: 220, borderRadius: 110, alignItems: 'center', justifyContent: 'center' },
   ringCenter: { alignItems: 'center', justifyContent: 'center' },
   countText: { fontSize: 56, fontWeight: '800' },
   countOf: { fontSize: 13, marginTop: 4 },

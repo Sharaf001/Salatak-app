@@ -24,7 +24,7 @@ function ToolRow({
 }) {
   const colors = useColors();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.toolRow, { borderBottomColor: colors.border }, pressed && { opacity: 0.7 }]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={({ pressed }) => [styles.toolRow, { borderBottomColor: colors.border }, pressed && { opacity: 0.7 }]}>
       <View style={[styles.toolIcon, { backgroundColor: accent ?? colors.secondary }]}><Feather name={icon} size={18} color={accent ? colors.accentForeground : colors.primary} /></View>
       <View style={styles.toolCopy}><Text style={[styles.toolTitle, { color: colors.deep }]}>{title}</Text><Text style={[styles.toolSubtitle, { color: colors.mutedForeground }]}>{subtitle}</Text></View>
       <Feather name="chevron-left" size={17} color={colors.mutedForeground} />
@@ -83,14 +83,16 @@ export default function MoreScreen() {
             <View style={[styles.counterNumber, { backgroundColor: '#BCD4C8' }]}><Text style={[styles.counterNumberText, { color: colors.primary }]}>{rakahCount}</Text></View>
           </View>
           <View style={styles.counterActions}>
-            <Pressable onPress={resetRakah} style={[styles.resetButton, { borderColor: colors.deepMuted }]}><Text style={[styles.resetText, { color: colors.deepMuted }]}>تصفير</Text></Pressable>
-            <Pressable onPress={countRakah} style={[styles.addButton, { backgroundColor: colors.primary }]}><Feather name="plus" size={18} color={colors.white} /><Text style={styles.addText}>أضف ركعة</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="تصفير عداد الركعات" onPress={resetRakah} style={[styles.resetButton, { borderColor: colors.deepMuted }]}><Text style={[styles.resetText, { color: colors.deepMuted }]}>تصفير</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="إضافة ركعة" onPress={countRakah} style={[styles.addButton, { backgroundColor: colors.primary }]}><Feather name="plus" size={18} color={colors.white} /><Text style={styles.addText}>أضف ركعة</Text></Pressable>
           </View>
         </View>
 
         <Text style={[styles.sectionTitle, { color: colors.deep, marginTop: 25 }]}>الإعدادات</Text>
         <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Pressable
+            accessibilityRole="switch"
+            accessibilityLabel="تفعيل تنبيهات الصلاة"
             onPress={() => {
               if (!notificationsSupported) {
                 Alert.alert('يتطلب بناء تطوير', 'تنبيهات الصلاة لا تعمل داخل Expo Go على أندرويد. ثبّت نسخة development أو production مبنية عبر EAS، ثم افتح التطبيق من جديد.');
@@ -109,7 +111,7 @@ export default function MoreScreen() {
               </Text>
             </View>
           </Pressable>
-          <Pressable onPress={() => setCityPickerOpen(true)} style={styles.settingRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel="اختيار الموقع أو المدينة" onPress={() => setCityPickerOpen(true)} style={styles.settingRow}>
             <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Feather name="map-pin" size={17} color={colors.primary} /></View>
             <View style={styles.locationCopy}><Text style={[styles.settingText, { color: colors.deep }]}>الموقع</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>{selectedCity ? `${selectedCity.name}، ${selectedCity.country}` : locationLabel ?? (coords ? 'موقعك الحالي' : 'غير محدد')}</Text></View>
             <Feather name="chevron-left" size={17} color={colors.mutedForeground} />

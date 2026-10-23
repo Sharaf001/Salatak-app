@@ -77,7 +77,7 @@ export default function QiblaScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
+        <Pressable accessibilityRole="button" accessibilityLabel="العودة" onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
           <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
           <Text style={[styles.backText, { color: colors.mutedForeground }]}>رجوع</Text>
         </Pressable>

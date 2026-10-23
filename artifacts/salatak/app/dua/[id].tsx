@@ -21,7 +21,7 @@ export default function DuaReaderScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
+        <Pressable accessibilityRole="button" accessibilityLabel="العودة" onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
           <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
           <Text style={[styles.backText, { color: colors.mutedForeground }]}>رجوع</Text>
         </Pressable>

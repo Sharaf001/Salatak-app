@@ -70,7 +70,7 @@ function SectionTitle({
     <View style={styles.sectionHeader}>
       <Text style={[styles.sectionTitle, { color: colors.deep }]}>{title}</Text>
       {action ? (
-        <Pressable onPress={onPress} hitSlop={10}>
+        <Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onPress} hitSlop={10}>
           <Text style={[styles.sectionAction, { color: colors.primary }]}>{action}</Text>
         </Pressable>
       ) : null}
@@ -144,13 +144,13 @@ export default function HomeScreen() {
             <Text style={[styles.greeting, { color: colors.deep }]}>السلام عليكم</Text>
             <Text style={[styles.subGreeting, { color: colors.mutedForeground }]}>نسأل الله أن يتقبل طاعتكم</Text>
           </View>
-          <Pressable style={[styles.avatar, { backgroundColor: colors.secondary }]} onPress={() => open('/more')}>
+          <Pressable accessibilityRole="button" accessibilityLabel="فتح المزيد والإعدادات" style={[styles.avatar, { backgroundColor: colors.secondary }]} onPress={() => open('/more')}>
             <Text style={[styles.avatarText, { color: colors.primary }]}>ص</Text>
           </Pressable>
         </View>
 
         {!coords && !locationLoading && (
-          <Pressable onPress={() => open('/more')} style={[styles.warning, { backgroundColor: '#F6E8D8', borderColor: '#E4C79F' }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="فتح إعدادات الموقع" onPress={() => open('/more')} style={[styles.warning, { backgroundColor: colors.cream, borderColor: colors.accent }]}>
             <Feather name="alert-triangle" size={15} color={colors.accentForeground} />
             <Text style={[styles.warningText, { color: colors.deep }]}>فعّل الموقع أو اختر مدينتك لعرض مواقيم دقيقة</Text>
           </Pressable>
@@ -193,6 +193,8 @@ export default function HomeScreen() {
             return (
               <Pressable
                 key={prayer.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${prayer.name}: ${isCompleted ? 'مكتملة' : 'تحديد كمكتملة'}`}
                 onPress={() => handlePrayer(prayer.id)}
                 style={({ pressed }) => [
                   styles.prayerRow,
@@ -210,6 +212,8 @@ export default function HomeScreen() {
                 </View>
                 <Text style={[styles.prayerTime, { color: colors.deep }]}>{prayer.time}</Text>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${isCompleted ? 'إلغاء' : 'تحديد'} ${prayer.name}`}
                   onPress={() => handlePrayer(prayer.id)}
                   style={[styles.checkCircle, { borderColor: isCompleted ? colors.success : colors.border, backgroundColor: isCompleted ? colors.success : colors.background }]}
                 >
@@ -222,13 +226,13 @@ export default function HomeScreen() {
 
         <SectionTitle title="الوصول السريع" />
         <View style={styles.quickGrid}>
-          <Pressable onPress={() => open('/quran')} style={({ pressed }) => [styles.quickCard, { backgroundColor: '#E0ECE5' }, pressed && styles.pressed]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="فتح القرآن الكريم" onPress={() => open('/quran')} style={({ pressed }) => [styles.quickCard, { backgroundColor: colors.secondary }, pressed && styles.pressed]}>
             <View style={[styles.quickIcon, { backgroundColor: '#BCD4C8' }]}><Feather name="book-open" size={20} color={colors.primary} /></View>
             <Text style={[styles.quickTitle, { color: colors.deep }]}>القرآن الكريم</Text>
             <Text style={[styles.quickSubtitle, { color: colors.deepMuted }]}>واصل من يس</Text>
             <View style={[styles.quickArrow, { backgroundColor: colors.primary }]}><Feather name="arrow-up-left" size={14} color={colors.white} /></View>
           </Pressable>
-          <Pressable onPress={() => open('/duas')} style={({ pressed }) => [styles.quickCard, { backgroundColor: '#F3E5C5' }, pressed && styles.pressed]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="فتح الأدعية" onPress={() => open('/duas')} style={({ pressed }) => [styles.quickCard, { backgroundColor: colors.cream }, pressed && styles.pressed]}>
             <View style={[styles.quickIcon, { backgroundColor: '#E9D29C' }]}><Feather name="heart" size={20} color={colors.accentForeground} /></View>
             <Text style={[styles.quickTitle, { color: colors.deep }]}>الأدعية اليومية</Text>
             <Text style={[styles.quickSubtitle, { color: colors.deepMuted }]}>وردك اليومي</Text>
