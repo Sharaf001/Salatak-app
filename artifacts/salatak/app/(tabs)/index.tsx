@@ -163,7 +163,7 @@ export default function HomeScreen() {
           <Feather name="chevron-left" size={15} color={colors.primary} />
         </View>
 
-        <View style={[styles.nextPrayerCard, { backgroundColor: colors.deep }]}>
+        <View style={[styles.nextPrayerCard, { backgroundColor: colors.strongSurface }]}>
           <View style={styles.nextPrayerTop}>
             <View>
               <Text style={styles.nextLabel}>الصلاة القادمة</Text>
@@ -227,13 +227,13 @@ export default function HomeScreen() {
         <SectionTitle title="الوصول السريع" />
         <View style={styles.quickGrid}>
           <Pressable accessibilityRole="button" accessibilityLabel="فتح القرآن الكريم" onPress={() => open('/quran')} style={({ pressed }) => [styles.quickCard, { backgroundColor: colors.secondary }, pressed && styles.pressed]}>
-            <View style={[styles.quickIcon, { backgroundColor: '#BCD4C8' }]}><Feather name="book-open" size={20} color={colors.primary} /></View>
+            <View style={[styles.quickIcon, { backgroundColor: colors.secondary }]}><Feather name="book-open" size={20} color={colors.primary} /></View>
             <Text style={[styles.quickTitle, { color: colors.deep }]}>القرآن الكريم</Text>
             <Text style={[styles.quickSubtitle, { color: colors.deepMuted }]}>واصل من يس</Text>
             <View style={[styles.quickArrow, { backgroundColor: colors.primary }]}><Feather name="arrow-up-left" size={14} color={colors.white} /></View>
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="فتح الأدعية" onPress={() => open('/duas')} style={({ pressed }) => [styles.quickCard, { backgroundColor: colors.cream }, pressed && styles.pressed]}>
-            <View style={[styles.quickIcon, { backgroundColor: '#E9D29C' }]}><Feather name="heart" size={20} color={colors.accentForeground} /></View>
+            <View style={[styles.quickIcon, { backgroundColor: colors.accent }]}><Feather name="heart" size={20} color={colors.accentForeground} /></View>
             <Text style={[styles.quickTitle, { color: colors.deep }]}>الأدعية اليومية</Text>
             <Text style={[styles.quickSubtitle, { color: colors.deepMuted }]}>وردك اليومي</Text>
             <View style={[styles.quickArrow, { backgroundColor: colors.accentForeground }]}><Feather name="arrow-up-left" size={14} color={colors.white} /></View>

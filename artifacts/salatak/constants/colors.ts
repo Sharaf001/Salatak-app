@@ -52,6 +52,7 @@ const colors = {
 
     // Product-specific semantic tokens
     deep: '#173B3A',
+    strongSurface: '#173B3A',
     deepMuted: '#376762',
     cream: '#FFF9ED',
     gold: '#D7A84C',
@@ -80,6 +81,7 @@ const colors = {
     border: '#385650',
     input: '#385650',
     deep: '#F3F7F4',
+    strongSurface: '#19322F',
     deepMuted: '#B7D0C9',
     cream: '#203B36',
     gold: '#E8C77D',

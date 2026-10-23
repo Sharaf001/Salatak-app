@@ -228,23 +228,26 @@ export default function QuranScreen() {
           keyExtractor={(_, index) => `${selected.id}-${index}`}
           contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
           ListHeaderComponent={
-            <View style={[styles.readerCard, { backgroundColor: colors.deep }]}>
+            <View style={[styles.readerCard, { backgroundColor: colors.strongSurface }]}>
               <View style={styles.readerHeader}>
                 <Pressable accessibilityRole="button" accessibilityLabel="العودة إلى قائمة السور" onPress={() => setSelectedId(null)} hitSlop={12}><Feather name="chevron-right" size={20} color={colors.mutedForeground} /></Pressable>
-                <View style={styles.readerTitle}>                <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text><Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text></View>
+                <View style={styles.readerTitle}>
+                  <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
+                  <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
+                </View>
                 <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
               </View>
               {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
             </View>
           }
           renderItem={({ item, index }) => (
-            <View style={[styles.verseRow, { backgroundColor: colors.deep, borderBottomColor: colors.border }]}>
+            <View style={[styles.verseRow, { backgroundColor: colors.strongSurface, borderBottomColor: colors.border }]}>
               <Text style={[styles.verseNumber, { color: colors.gold }]}>{index + 1}</Text>
               <Text style={[styles.verseText, { color: colors.primaryForeground }]}>{item}</Text>
             </View>
           )}
           ListFooterComponent={
-            <View style={[styles.readerFooter, { backgroundColor: colors.deep }]}>
+            <View style={[styles.readerFooter, { backgroundColor: colors.strongSurface }]}>
               <Text style={[styles.readerFooterText, { color: colors.deepMuted }]}>{selected.verses} آية</Text><Text style={[styles.readerFooterText, { color: colors.deepMuted }]}>{selected.type}</Text>
             </View>
           }

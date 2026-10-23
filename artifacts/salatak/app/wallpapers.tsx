@@ -10,6 +10,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useWallpapers } from '@workspace/api-client-react';
 import { ErrorFallback } from '@/components/ErrorFallback';
 import { wallpaperCredits } from '@/data/wallpaperCredits';
+import { useColors } from '@/hooks/useColors';
 
 const categories = ['الكل', 'المراقد المقدسة', 'مناسبات'];
 
@@ -32,6 +33,7 @@ const FALLBACK_WALLPAPERS = [
 ];
 
 export default function WallpapersScreen() {
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   const [activeCategory, setActiveCategory] = useState('الكل');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -81,25 +83,25 @@ export default function WallpapersScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}>
         <Pressable accessibilityRole="button" accessibilityLabel="العودة" onPress={() => router.back()} style={styles.backRow} hitSlop={10}>
-          <Feather name="chevron-right" size={16} color="#6B7A74" />
-          <Text style={styles.backText}>رجوع</Text>
+          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+          <Text style={[styles.backText, { color: colors.mutedForeground }]}>رجوع</Text>
         </Pressable>
         <View style={styles.header}>
           <View>
-            <Text style={styles.eyebrow}>معرض الصور</Text>
-            <Text style={styles.title}>الخلفيات</Text>
+            <Text style={[styles.eyebrow, { color: colors.deepMuted }]}>معرض الصور</Text>
+            <Text style={[styles.title, { color: colors.deep }]}>الخلفيات</Text>
           </View>
           <View style={styles.headerActions}>
-            <Pressable onPress={() => router.push('/wallpaper-credits')} style={styles.creditsButton}>
-              <Feather name="info" size={14} color="#1F5A55" />
-              <Text style={styles.creditsText}>اعتمادات ({wallpaperCredits.length})</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="عرض اعتمادات الخلفيات" onPress={() => router.push('/wallpaper-credits')} style={[styles.creditsButton, { backgroundColor: colors.secondary }]}>
+              <Feather name="info" size={14} color={colors.primary} />
+              <Text style={[styles.creditsText, { color: colors.primary }]}>اعتمادات ({wallpaperCredits.length})</Text>
             </Pressable>
-            <View style={styles.headerIcon}>
-              <Feather name="image" size={19} color="#1F5A55" />
+            <View style={[styles.headerIcon, { backgroundColor: colors.secondary }]}>
+              <Feather name="image" size={19} color={colors.primary} />
             </View>
           </View>
         </View>
@@ -109,16 +111,16 @@ export default function WallpapersScreen() {
             <Pressable
               key={category}
               onPress={() => setActiveCategory(category)}
-              style={[styles.filter, activeCategory === category && styles.filterActive]}
+              style={[styles.filter, { backgroundColor: activeCategory === category ? colors.primary : colors.card, borderColor: activeCategory === category ? colors.primary : colors.border }]}
             >
-              <Text style={[styles.filterText, activeCategory === category && styles.filterTextActive]}>{category}</Text>
+              <Text style={[styles.filterText, { color: activeCategory === category ? colors.white : colors.deepMuted }]}>{category}</Text>
             </Pressable>
           ))}
         </ScrollView>
 
         <View style={styles.grid}>
           {visible.map((item) => (
-            <Pressable key={item.id} style={styles.tile} onPress={() => void downloadWallpaper(item.id, item.source, item.title)}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`حفظ خلفية ${item.title}`} key={item.id} style={[styles.tile, { backgroundColor: colors.muted }]} onPress={() => void downloadWallpaper(item.id, item.source, item.title)}>
               <Image source={item.source} style={styles.image} contentFit="cover" transition={200} />
               <View style={styles.overlay}>
                 <Text style={styles.tileTitle}>{item.title}</Text>

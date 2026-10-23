@@ -43,7 +43,7 @@ export default function DuasScreen() {
           </View>
         </View>
 
-        <View style={[styles.introCard, { backgroundColor: colors.deep }]}>
+        <View style={[styles.introCard, { backgroundColor: colors.strongSurface }]}>
           <Text style={styles.introArabic}>وَاذْكُر رَّبَّكَ إِذَا نَسِيتَ</Text>
           <Text style={styles.introTranslation}>واجعل لسانك عامراً بذكر الله</Text>
           <View style={styles.introFooter}><Feather name="sun" size={14} color="#E8C77D" /><Text style={styles.introSource}>الكهف · ٢٤</Text></View>

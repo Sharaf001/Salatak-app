@@ -87,7 +87,7 @@ export default function BookmarksScreen() {
           </View>
         </View>
 
-        <View style={[styles.summary, { backgroundColor: colors.deep }]}>
+        <View style={[styles.summary, { backgroundColor: colors.strongSurface }]}>
           <Text style={styles.summaryNumber}>{bookmarks.length}</Text>
           <View style={styles.summaryCopy}>
             <Text style={styles.summaryTitle}>ما حفظته للرجوع إليه</Text>

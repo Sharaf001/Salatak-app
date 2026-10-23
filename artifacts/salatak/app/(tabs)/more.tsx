@@ -55,7 +55,7 @@ export default function MoreScreen() {
           <View style={[styles.headerIcon, { backgroundColor: colors.secondary }]}><Feather name="grid" size={19} color={colors.primary} /></View>
         </View>
 
-        <View style={[styles.profileCard, { backgroundColor: colors.deep }]}>
+        <View style={[styles.profileCard, { backgroundColor: colors.strongSurface }]}>
           <View style={[styles.profileMark, { backgroundColor: '#2A6761' }]}><Text style={styles.profileLetter}>ص</Text></View>
           <View style={styles.profileCopy}><Text style={styles.profileTitle}>صلاتك</Text><Text style={styles.profileSubtitle}>رفيقك لكل صلاة وذكر</Text></View>
           <Feather name="settings" size={19} color="#B6D2CB" />
@@ -77,10 +77,10 @@ export default function MoreScreen() {
           <ToolRow icon="image" title="الخلفيات" subtitle="خلفيات هاتف بجودة عالية للمراقد والمناسبات" onPress={() => router.push('/wallpapers')} />
         </View>
 
-        <View style={[styles.counterCard, { backgroundColor: '#E0ECE5' }]}>
+        <View style={[styles.counterCard, { backgroundColor: colors.secondary }]}>
           <View style={styles.counterTop}>
             <View><Text style={[styles.counterLabel, { color: colors.deepMuted }]}>عداد الركعات</Text><Text style={[styles.counterTitle, { color: colors.deep }]}>سجّل صلاتك بهدوء</Text></View>
-            <View style={[styles.counterNumber, { backgroundColor: '#BCD4C8' }]}><Text style={[styles.counterNumberText, { color: colors.primary }]}>{rakahCount}</Text></View>
+            <View style={[styles.counterNumber, { backgroundColor: colors.card }]}><Text style={[styles.counterNumberText, { color: colors.primary }]}>{rakahCount}</Text></View>
           </View>
           <View style={styles.counterActions}>
             <Pressable accessibilityRole="button" accessibilityLabel="تصفير عداد الركعات" onPress={resetRakah} style={[styles.resetButton, { borderColor: colors.deepMuted }]}><Text style={[styles.resetText, { color: colors.deepMuted }]}>تصفير</Text></Pressable>

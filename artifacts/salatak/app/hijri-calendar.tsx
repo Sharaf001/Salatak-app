@@ -81,7 +81,7 @@ export default function HijriCalendarScreen() {
           </View>
         </View>
 
-        <View style={[styles.todayCard, { backgroundColor: colors.deep }]}>
+        <View style={[styles.todayCard, { backgroundColor: colors.strongSurface }]}>
           <Text style={styles.todayLabel}>اليوم</Text>
           <Text style={styles.todayDate}>{toArabicIndicDigits(todayHijri.day)} {todayHijri.monthName} {toArabicIndicDigits(todayHijri.year)}</Text>
           <Text style={styles.todayNote}>بحسب الحساب المدني التقريبي</Text>
