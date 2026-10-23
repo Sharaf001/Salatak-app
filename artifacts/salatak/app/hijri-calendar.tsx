@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { gregorianToHijri, toArabicIndicDigits } from '@/hooks/useHijriDate';
+import { occasionFor } from '@/data/islamic-occasions';
 
 const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
@@ -61,6 +62,7 @@ export default function HijriCalendarScreen() {
 
   const isToday = (date: Date) => date.getTime() === today.getTime();
   const dayLabel = (date: Date) => toArabicIndicDigits(gregorianToHijri(date).day);
+  const occasion = occasionFor(todayHijri.month, todayHijri.day);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
@@ -85,6 +87,7 @@ export default function HijriCalendarScreen() {
           <Text style={styles.todayLabel}>اليوم</Text>
           <Text style={styles.todayDate}>{toArabicIndicDigits(todayHijri.day)} {todayHijri.monthName} {toArabicIndicDigits(todayHijri.year)}</Text>
           <Text style={styles.todayNote}>بحسب الحساب المدني التقريبي</Text>
+          {occasion ? <Text style={[styles.occasion, { color: colors.gold }]}>{occasion.name}</Text> : null}
         </View>
 
         <View style={[styles.calendarCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -133,6 +136,7 @@ const styles = StyleSheet.create({
   todayLabel: { color: '#B6D2CB', fontSize: 11, textAlign: 'right' },
   todayDate: { color: '#FFF9ED', fontSize: 20, fontWeight: '700', textAlign: 'right', marginTop: 5 },
   todayNote: { color: '#B6D2CB', fontSize: 10, textAlign: 'right', marginTop: 6 },
+  occasion: { fontSize: 12, fontWeight: '700', textAlign: 'right', marginTop: 10 },
   calendarCard: { borderWidth: 1, borderRadius: 18, padding: 14 },
   monthControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
   navButton: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },

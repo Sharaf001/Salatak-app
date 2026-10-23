@@ -7,7 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 import { notificationsSupported } from '@/hooks/usePrayerNotifications';
-import { MANUAL_CITIES, usePrayerTimes } from '@/hooks/usePrayerTimes';
+import { MANUAL_CITIES, PRAYER_METHODS, usePrayerTimes, type PrayerMethod } from '@/hooks/usePrayerTimes';
 
 function ToolRow({
   icon,
@@ -35,9 +35,10 @@ function ToolRow({
 export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { rakahCount, incrementRakah, resetRakah, bookmarks, notificationsEnabled, toggleNotifications, selectedCity, setSelectedCity } = useSalatak();
-  const { coords, locationLabel } = usePrayerTimes(new Date(), selectedCity);
+  const { rakahCount, incrementRakah, resetRakah, bookmarks, notificationsEnabled, toggleNotifications, selectedCity, setSelectedCity, prayerMethod, setPrayerMethod } = useSalatak();
+  const { coords, locationLabel } = usePrayerTimes(new Date(), selectedCity, prayerMethod);
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
+  const [methodPickerOpen, setMethodPickerOpen] = useState(false);
 
   const countRakah = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -116,6 +117,11 @@ export default function MoreScreen() {
             <View style={styles.locationCopy}><Text style={[styles.settingText, { color: colors.deep }]}>الموقع</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>{selectedCity ? `${selectedCity.name}، ${selectedCity.country}` : locationLabel ?? (coords ? 'موقعك الحالي' : 'غير محدد')}</Text></View>
             <Feather name="chevron-left" size={17} color={colors.mutedForeground} />
           </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="اختيار طريقة حساب أوقات الصلاة" onPress={() => setMethodPickerOpen(true)} style={styles.settingRow}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Feather name="sliders" size={17} color={colors.primary} /></View>
+            <View style={styles.locationCopy}><Text style={[styles.settingText, { color: colors.deep }]}>طريقة الحساب</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>{PRAYER_METHODS[prayerMethod]}</Text></View>
+            <Feather name="chevron-left" size={17} color={colors.mutedForeground} />
+          </Pressable>
         </View>
       </ScrollView>
       <Modal visible={cityPickerOpen} transparent animationType="slide" onRequestClose={() => setCityPickerOpen(false)}>
@@ -130,6 +136,20 @@ export default function MoreScreen() {
               </Pressable>
             ))}
             <Pressable onPress={() => setCityPickerOpen(false)} style={styles.cancelButton}><Text style={[styles.cancelText, { color: colors.primary }]}>إلغاء</Text></Pressable>
+          </View>
+        </View>
+      </Modal>
+      <Modal visible={methodPickerOpen} transparent animationType="slide" onRequestClose={() => setMethodPickerOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.deep }]}>اختر طريقة الحساب</Text>
+            {(Object.keys(PRAYER_METHODS) as PrayerMethod[]).map((method) => (
+              <Pressable key={method} onPress={() => { setPrayerMethod(method); setMethodPickerOpen(false); }} style={[styles.cityRow, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.cityText, { color: colors.deep }]}>{PRAYER_METHODS[method]}</Text>
+                {prayerMethod === method && <Feather name="check" size={17} color={colors.primary} />}
+              </Pressable>
+            ))}
+            <Pressable onPress={() => setMethodPickerOpen(false)} style={styles.cancelButton}><Text style={[styles.cancelText, { color: colors.primary }]}>إلغاء</Text></Pressable>
           </View>
         </View>
       </Modal>

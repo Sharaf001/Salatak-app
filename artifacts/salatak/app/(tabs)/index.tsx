@@ -12,7 +12,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
-import { usePrayerTimes, type PrayerId } from '@/hooks/usePrayerTimes';
+import { PRAYER_METHODS, usePrayerTimes, type PrayerId } from '@/hooks/usePrayerTimes';
 import { usePrayerNotifications } from '@/hooks/usePrayerNotifications';
 import { formatHijriDate, toArabicIndicDigits } from '@/hooks/useHijriDate';
 
@@ -82,7 +82,7 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { completedPrayers, togglePrayer, notificationsEnabled, selectedCity } = useSalatak();
+  const { completedPrayers, togglePrayer, notificationsEnabled, selectedCity, prayerMethod } = useSalatak();
 
   // Ticks every second so the countdown and "which prayer is next" stay live
   // without the person needing to reopen the screen.
@@ -92,7 +92,7 @@ export default function HomeScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity);
+  const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity, prayerMethod);
   usePrayerNotifications(coords, notificationsEnabled, today);
 
   const prayers = PRAYER_ORDER.map((id) => ({
@@ -162,6 +162,7 @@ export default function HomeScreen() {
           <Text style={[styles.hijriText, { color: colors.primary }]}>{formatHijriDate(now)}</Text>
           <Feather name="chevron-left" size={15} color={colors.primary} />
         </View>
+        <Text style={[styles.methodText, { color: colors.mutedForeground }]}>طريقة الحساب: {PRAYER_METHODS[prayerMethod]}</Text>
 
         <View style={[styles.nextPrayerCard, { backgroundColor: colors.strongSurface }]}>
           <View style={styles.nextPrayerTop}>
@@ -206,6 +207,21 @@ export default function HomeScreen() {
                 <View style={[styles.prayerIcon, { backgroundColor: isNext ? '#F4E4B7' : colors.secondary }]}>
                   <Feather name={prayer.icon} size={17} color={isNext ? colors.accentForeground : colors.primary} />
                 </View>
+                {today ? (
+                  <View style={[styles.astronomicalRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    {[
+                      ['إمساك', today.fajr],
+                      ['الشروق', today.sunrise],
+                      ['الغروب', today.sunset],
+                      ['منتصف الليل', today.midnight],
+                    ].map(([label, time]) => (
+                      <View key={label as string} style={styles.astronomicalItem}>
+                        <Text style={[styles.astronomicalLabel, { color: colors.mutedForeground }]}>{label as string}</Text>
+                        <Text style={[styles.astronomicalTime, { color: colors.deep }]}>{formatClock(time as Date)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
                 <View style={styles.prayerNameWrap}>
                   <Text style={[styles.prayerName, { color: colors.deep }]}>{prayer.name}</Text>
                   <Text style={[styles.prayerEnglish, { color: colors.mutedForeground }]}>{prayer.english}</Text>
@@ -262,6 +278,11 @@ const styles = StyleSheet.create({
   warning: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 13, padding: 11, marginTop: 18 },
   warningText: { flex: 1, textAlign: 'right', fontSize: 12, fontWeight: '600' },
   locationRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginTop: 10 },
+  methodText: { fontSize: 10, textAlign: 'right', marginTop: 6, marginBottom: 8 },
+  astronomicalRow: { borderWidth: 1, borderRadius: 16, padding: 12, flexDirection: 'row-reverse', justifyContent: 'space-between', marginTop: 10 },
+  astronomicalItem: { alignItems: 'center', flex: 1 },
+  astronomicalLabel: { fontSize: 10 },
+  astronomicalTime: { fontSize: 13, fontWeight: '700', marginTop: 4 },
   locationText: { fontSize: 12, marginLeft: 5 },
   locationSpacer: { flex: 1 },
   hijriText: { fontSize: 11, marginRight: 4 },

@@ -19,13 +19,19 @@ import { Coordinates, CalculationMethod, Madhab, PrayerTimes } from 'adhan';
  */
 
 export type PrayerId = 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
+export type PrayerTimeId = PrayerId | 'sunrise' | 'sunset' | 'midnight';
+export type PrayerMethod = 'tehran' | 'qom';
+export const PRAYER_METHODS: Record<PrayerMethod, string> = {
+  tehran: 'جامعة طهران',
+  qom: 'قم (لوا)',
+};
 
 export type PrayerTimesResult = {
   loading: boolean;
   /** null if location permission was denied / unavailable */
   coords: { latitude: number; longitude: number } | null;
   locationLabel: string | null;
-  today: Record<PrayerId, Date> | null;
+  today: Record<PrayerTimeId, Date> | null;
   /** raw geometric sunset, shown separately from the Shia-adjusted Maghrib time */
   sunset: Date | null;
   nextPrayer: { id: PrayerId; time: Date } | null;
@@ -50,17 +56,26 @@ export const MANUAL_CITIES: ManualCity[] = [
 
 const PRAYER_ORDER: PrayerId[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
-export function computePrayerTimes(coordinates: Coordinates, date: Date) {
+export function computePrayerTimes(coordinates: Coordinates, date: Date, method: PrayerMethod = 'tehran') {
   const params = CalculationMethod.Tehran();
+  if (method === 'qom') {
+    params.fajrAngle = 16;
+    params.ishaAngle = 14;
+    params.maghribAngle = 4.5;
+  }
   params.madhab = Madhab.Shafi;
   const pt = new PrayerTimes(coordinates, date, params);
+  const midnight = new Date((pt.sunset.getTime() + pt.fajr.getTime()) / 2);
   return {
     fajr: pt.fajr,
+    sunrise: pt.sunrise,
     dhuhr: pt.dhuhr,
     asr: pt.asr,
+    sunset: pt.sunset,
     maghrib: pt.maghrib,
     isha: pt.isha,
-  } satisfies Record<PrayerId, Date>;
+    midnight,
+  } satisfies Record<PrayerTimeId, Date>;
 }
 
 function computeSunset(coordinates: Coordinates, date: Date) {
@@ -71,7 +86,7 @@ function computeSunset(coordinates: Coordinates, date: Date) {
   return pt.maghrib;
 }
 
-export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null): PrayerTimesResult {
+export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null, method: PrayerMethod = 'tehran'): PrayerTimesResult {
   const [loading, setLoading] = useState(true);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
@@ -122,13 +137,13 @@ export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null):
     if (manualCity) {
       const manualCoords = { latitude: manualCity.latitude, longitude: manualCity.longitude };
       const coordinates = new Coordinates(manualCoords.latitude, manualCoords.longitude);
-      const today = computePrayerTimes(coordinates, now);
+      const today = computePrayerTimes(coordinates, now, method);
       const sunset = computeSunset(coordinates, now);
       let nextPrayer = PRAYER_ORDER.map((id) => ({ id, time: today[id] })).find((p) => p.time.getTime() > now.getTime()) ?? null;
       if (!nextPrayer) {
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        nextPrayer = { id: 'fajr', time: computePrayerTimes(coordinates, tomorrow).fajr };
+        nextPrayer = { id: 'fajr', time: computePrayerTimes(coordinates, tomorrow, method).fajr };
       }
       return { loading: false, coords: manualCoords, locationLabel: `${manualCity.name}، ${manualCity.country}`, today, sunset, nextPrayer };
     }
@@ -137,7 +152,7 @@ export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null):
     }
 
     const coordinates = new Coordinates(coords.latitude, coords.longitude);
-    const today = computePrayerTimes(coordinates, now);
+    const today = computePrayerTimes(coordinates, now, method);
     const sunset = computeSunset(coordinates, now);
 
     let nextPrayer = PRAYER_ORDER.map((id) => ({ id, time: today[id] })).find((p) => p.time.getTime() > now.getTime()) ?? null;
@@ -145,10 +160,10 @@ export function usePrayerTimes(now: Date, manualCity: ManualCity | null = null):
     if (!nextPrayer) {
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowTimes = computePrayerTimes(coordinates, tomorrow);
+      const tomorrowTimes = computePrayerTimes(coordinates, tomorrow, method);
       nextPrayer = { id: 'fajr', time: tomorrowTimes.fajr };
     }
 
     return { loading, coords, locationLabel, today, sunset, nextPrayer };
-  }, [coords, locationLabel, loading, manualCity, minuteKey]);
+  }, [coords, locationLabel, loading, manualCity, method, minuteKey]);
 }

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import type { PrayerMethod } from '@/hooks/usePrayerTimes';
 
 const STORAGE_KEY = '@salatak/state';
 
@@ -14,6 +15,8 @@ export type SalatakState = {
   stateDate: string;
   selectedCity: { id: string; name: string; country: string; latitude: number; longitude: number } | null;
   lastReadSurah: string | null;
+  lastReadVerse: number;
+  prayerMethod: PrayerMethod;
 };
 
 type SalatakContextValue = SalatakState & {
@@ -31,6 +34,8 @@ type SalatakContextValue = SalatakState & {
   toggleNotifications: () => void;
   setSelectedCity: (city: NonNullable<SalatakState['selectedCity']>) => void;
   setLastReadSurah: (surahId: string) => void;
+  setLastReadVerse: (verse: number) => void;
+  setPrayerMethod: (method: PrayerMethod) => void;
 };
 
 const initialState: SalatakState = {
@@ -44,6 +49,8 @@ const initialState: SalatakState = {
   stateDate: '',
   selectedCity: null,
   lastReadSurah: null,
+  lastReadVerse: 0,
+  prayerMethod: 'tehran',
 };
 
 const SalatakContext = createContext<SalatakContextValue | null>(null);
@@ -122,6 +129,8 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       toggleNotifications: () => persist({ ...state, notificationsEnabled: !state.notificationsEnabled }),
       setSelectedCity: (city) => persist({ ...state, selectedCity: city }),
       setLastReadSurah: (surahId) => persist({ ...state, lastReadSurah: surahId }),
+      setLastReadVerse: (verse) => persist({ ...state, lastReadVerse: verse }),
+      setPrayerMethod: (prayerMethod) => persist({ ...state, prayerMethod }),
     }),
     [isReady, state],
   );

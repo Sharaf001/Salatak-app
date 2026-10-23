@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/amiri": "^0.4.1",
+    "expo-audio": "^57.0.5",
     "react-native-svg": "^15.16.0"
   }
 }

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
@@ -176,7 +177,7 @@ function prepareReader(n: number, raw: string[]): { bismillah: boolean; verses: 
 export default function QuranScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { toggleBookmark, isBookmarked, lastReadSurah, setLastReadSurah } = useSalatak();
+  const { toggleBookmark, isBookmarked, lastReadSurah, lastReadVerse, setLastReadSurah, setLastReadVerse } = useSalatak();
   const { surah: requestedSurah } = useLocalSearchParams<{ surah?: string }>();
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -218,6 +219,10 @@ export default function QuranScreen() {
   const reader = selected
     ? prepareReader(Number(selected.id.replace('surah-', '')), selected.readerVerses)
     : { bismillah: false, verses: [] as string[] };
+  const audioPlayer = useAudioPlayer(
+    selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null,
+  );
+  const audioStatus = useAudioPlayerStatus(audioPlayer);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
@@ -235,11 +240,17 @@ export default function QuranScreen() {
                   <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
                   <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
                 </View>
+                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : 'تشغيل تلاوة السورة'} onPress={() => audioStatus.playing ? audioPlayer.pause() : audioPlayer.play()} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
                 <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
               </View>
               {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
             </View>
           }
+          onViewableItemsChanged={({ viewableItems }) => {
+            const firstVisible = viewableItems[0]?.index;
+            if (typeof firstVisible === 'number') setLastReadVerse(firstVisible);
+          }}
+          viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
           renderItem={({ item, index }) => (
             <View style={[styles.verseRow, { backgroundColor: colors.strongSurface, borderBottomColor: colors.border }]}>
               <Text style={[styles.verseNumber, { color: colors.gold }]}>{index + 1}</Text>
