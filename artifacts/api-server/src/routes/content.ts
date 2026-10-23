@@ -10,6 +10,11 @@ import {
 
 const router: IRouter = Router();
 
+router.use((_req, res, next) => {
+  res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+  next();
+});
+
 router.get("/surahs", async (_req, res) => {
   const rows = await db.select().from(surahsTable).orderBy(surahsTable.id);
   res.json(rows);

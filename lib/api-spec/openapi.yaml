@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: content
+    description: Religious content
 paths:
   /healthz:
     get:
@@ -24,6 +26,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /surahs:
+    get:
+      operationId: listSurahs
+      tags: [content]
+      summary: List Quran surahs
+      responses:
+        "200":
+          description: Quran surahs ordered by number
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Surah"
+  /duas:
+    get:
+      operationId: listDuas
+      tags: [content]
+      summary: List duas
+      responses:
+        "200":
+          description: Duas ordered by id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dua"
+  /azkar:
+    get:
+      operationId: listAzkar
+      tags: [content]
+      summary: List azkar
+      responses:
+        "200":
+          description: Azkar ordered by id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Azkar"
+  /ziyarat:
+    get:
+      operationId: listZiyarat
+      tags: [content]
+      summary: List ziyarat
+      responses:
+        "200":
+          description: Ziyarat ordered by id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ziyarat"
+  /wallpapers:
+    get:
+      operationId: listWallpapers
+      tags: [content]
+      summary: List wallpapers
+      responses:
+        "200":
+          description: Wallpapers ordered by id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Wallpaper"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +105,57 @@ components:
           type: string
       required:
         - status
-
+    Surah:
+      type: object
+      required: [id, slug, number, name, english, verseCount, revelationType, excerpt, verses]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        number: { type: string }
+        name: { type: string }
+        english: { type: string }
+        verseCount: { type: integer }
+        revelationType: { type: string }
+        excerpt: { type: string }
+        verses:
+          type: array
+          items: { type: string }
+    Dua:
+      type: object
+      required: [id, slug, category, title, body, count]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        category: { type: string }
+        title: { type: string }
+        body: { type: string }
+        count: { type: string }
+    Azkar:
+      type: object
+      required: [id, slug, category, title, body, count]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        category: { type: string }
+        title: { type: string }
+        body: { type: string }
+        count: { type: string }
+    Ziyarat:
+      type: object
+      required: [id, slug, category, title, excerpt]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        category: { type: string }
+        title: { type: string }
+        excerpt: { type: string }
+        body: { type: string, nullable: true }
+    Wallpaper:
+      type: object
+      required: [id, slug, category, title, imageUrl]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        category: { type: string }
+        title: { type: string }
+        imageUrl: { type: string }
