@@ -51,7 +51,8 @@
         {
           "locationWhenInUsePermission": "صلاتك يستخدم موقعك لحساب مواقيت الصلاة واتجاه القبلة بدقة."
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

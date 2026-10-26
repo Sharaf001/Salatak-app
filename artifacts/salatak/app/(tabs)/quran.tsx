@@ -232,7 +232,10 @@ export default function QuranScreen() {
       }
     });
   }, [selectedId]);
-  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+  const onViewableItemsChanged = useCallback(({ viewableItems }: {
+    viewableItems: Array<{ index?: number | null }>;
+    changed: Array<{ index?: number | null }>;
+  }) => {
     const firstVisible = viewableItems[0]?.index;
     if (typeof firstVisible !== 'number') return;
     if (saveVerseTimeoutRef.current) clearTimeout(saveVerseTimeoutRef.current);

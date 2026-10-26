@@ -81,9 +81,9 @@ function ClassicTabLayout() {
           title: 'Home',
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="house" tintColor={color} size={24} />
+              <SymbolView name="house" tintColor={String(color)} size={24} />
             ) : (
-              <Feather name="home" size={22} color={color} />
+              <Feather name="home" size={22} color={String(color)} />
             ),
         }}
       />
@@ -91,21 +91,21 @@ function ClassicTabLayout() {
         name="quran"
         options={{
           title: 'Quran',
-          tabBarIcon: ({ color }) => <Feather name="book-open" size={21} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="book-open" size={21} color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="duas"
         options={{
           title: 'Duas',
-          tabBarIcon: ({ color }) => <Feather name="heart" size={21} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="heart" size={21} color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
           title: 'More',
-          tabBarIcon: ({ color }) => <Feather name="grid" size={21} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="grid" size={21} color={String(color)} />,
         }}
       />
     </Tabs>

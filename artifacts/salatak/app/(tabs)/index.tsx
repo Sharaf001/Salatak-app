@@ -1,7 +1,6 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useIsFocused } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -83,16 +82,14 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const isFocused = useIsFocused();
   const { completedPrayers, togglePrayer, notificationsEnabled, selectedCity, prayerMethod } = useSalatak();
 
   const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    if (!isFocused) return undefined;
+  useFocusEffect(useCallback(() => {
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
-  }, [isFocused]);
+  }, []));
 
   const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity, prayerMethod);
   usePrayerNotifications(coords, notificationsEnabled, today, prayerMethod);
