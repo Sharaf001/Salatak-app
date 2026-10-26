@@ -18,7 +18,9 @@ import { Coordinates } from 'adhan';
  * matches legitimate development-client builds, which DO support
  * notifications — only classic Expo Go doesn't.
  */
-const isExpoGo = Constants.appOwnership === 'expo';
+const isExpoGo =
+  Constants.appOwnership === 'expo' ||
+  Constants.executionEnvironment === 'storeClient';
 const notificationsUnavailableInCurrentBuild = Platform.OS === 'android' && isExpoGo;
 
 const PRAYER_LABELS: Record<PrayerId, string> = {
