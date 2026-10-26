@@ -64,9 +64,15 @@ export function usePrayerNotifications(
 
     // Loaded lazily (only once we know we're not in Expo Go) so importing
     // this hook never touches the native module in an unsupported environment.
-    const loadedNotifications = require('expo-notifications') as
+    let loadedNotifications:
       | (typeof import('expo-notifications') & { default?: typeof import('expo-notifications') })
       | undefined;
+    try {
+      loadedNotifications = require('expo-notifications');
+    } catch (error) {
+      console.warn('Prayer notifications are unavailable in this client:', error);
+      return undefined;
+    }
     const Notifications = loadedNotifications?.default ?? loadedNotifications;
     if (!Notifications || typeof Notifications.setNotificationHandler !== 'function') {
       console.warn('Prayer notifications are unavailable in this build.');
