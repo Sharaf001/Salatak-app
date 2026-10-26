@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { AppState, Platform } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
-import type { PrayerId } from './usePrayerTimes';
+import type { PrayerId, PrayerMethod } from './usePrayerTimes';
 import { computePrayerTimes } from './usePrayerTimes';
 import { Coordinates } from 'adhan';
 
@@ -52,9 +52,12 @@ export function usePrayerNotifications(
   coords: { latitude: number; longitude: number } | null,
   enabled: boolean,
   today: Record<PrayerId, Date> | null,
+  method: PrayerMethod,
 ) {
   const lastScheduledDay = useRef<string | null>(null);
+  const todayRef = useRef(today);
   const [foregroundVersion, setForegroundVersion] = useState(0);
+  todayRef.current = today;
 
   useEffect(() => {
     if (notificationsUnavailableInCurrentBuild) return;
@@ -80,15 +83,6 @@ export function usePrayerNotifications(
       });
     }
 
-    if (!enabled || !coords) {
-      void cancelPrayerNotifications(Notifications);
-      lastScheduledDay.current = null;
-      return;
-    }
-
-    const todayKey = new Date().toDateString();
-    if (lastScheduledDay.current === todayKey) return; // already scheduled for today
-
     let cancelled = false;
     const appStateSubscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
@@ -96,6 +90,18 @@ export function usePrayerNotifications(
         setForegroundVersion((version) => version + 1);
       }
     });
+
+    if (!enabled || !coords) {
+      void cancelPrayerNotifications(Notifications);
+      lastScheduledDay.current = null;
+      return () => {
+        cancelled = true;
+        appStateSubscription.remove();
+      };
+    }
+
+    const todayKey = new Date().toDateString();
+    lastScheduledDay.current = null;
     (async () => {
       try {
         const { status } = await Notifications.requestPermissionsAsync();
@@ -103,15 +109,16 @@ export function usePrayerNotifications(
 
         await cancelPrayerNotifications(Notifications);
         const now = new Date();
-        if (!today) return;
+        const currentToday = todayRef.current;
+        if (!currentToday) return;
         const coordinates = new Coordinates(coords.latitude, coords.longitude);
         const upcoming: { id: PrayerId; time: Date }[] = PRAYER_ORDER
-          .map((id) => ({ id, time: today[id] }))
+          .map((id) => ({ id, time: currentToday[id] }))
           .filter((p) => p.time.getTime() > now.getTime());
         for (let offset = 1; offset <= 7; offset += 1) {
           const date = new Date(now);
           date.setDate(date.getDate() + offset);
-          const prayerTimes = computePrayerTimes(coordinates, date);
+          const prayerTimes = computePrayerTimes(coordinates, date, method);
           for (const prayer of PRAYER_ORDER) {
             upcoming.push({ id: prayer, time: prayerTimes[prayer] });
           }
@@ -145,7 +152,7 @@ export function usePrayerNotifications(
       cancelled = true;
       appStateSubscription.remove();
     };
-  }, [coords?.latitude, coords?.longitude, enabled, today, foregroundVersion]);
+  }, [coords?.latitude, coords?.longitude, enabled, method, foregroundVersion]);
 }
 
 async function cancelPrayerNotifications(Notifications: typeof import('expo-notifications')) {

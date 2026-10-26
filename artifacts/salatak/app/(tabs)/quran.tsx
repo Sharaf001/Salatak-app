@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   FlatList,
@@ -159,6 +159,7 @@ function plainArabic(word: string): string {
     .replace(/[ٱأإآ]/g, 'ا')
     .replace(/[یى]/g, 'ي');
 }
+const READER_VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 60 };
 function prepareReader(n: number, raw: string[]): { bismillah: boolean; verses: string[] } {
   if (n === 1 || raw === PLACEHOLDER_READER_VERSES || raw.length === 0) {
     return { bismillah: false, verses: raw };
@@ -182,9 +183,12 @@ export default function QuranScreen() {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const readerListRef = useRef<FlatList<string>>(null);
+  const saveVerseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setLastReadVerseRef = useRef(setLastReadVerse);
+  setLastReadVerseRef.current = setLastReadVerse;
   const { data } = useSurahs();
-  const surahs =
-    Array.isArray(data) && data.length > 0
+  const surahs = useMemo(() => {
+    const items = Array.isArray(data) && data.length > 0
       ? data.map((s) => ({
           id: s.slug,
           number: s.number,
@@ -196,11 +200,17 @@ export default function QuranScreen() {
           readerVerses: s.verses.length > 0 ? s.verses : versesFor(Number(s.slug.replace('surah-', ''))),
         }))
       : SURAH_INDEX.map((s) => ({ ...s, readerVerses: versesFor(s.n) }));
+
+    return items.map((surah) => ({
+      ...surah,
+      searchText: plainArabic(`${surah.name} ${surah.english} ${surah.excerpt} ${surah.readerVerses.join(' ')}`).toLowerCase(),
+    }));
+  }, [data]);
   const filtered = useMemo(
     () => surahs.filter((surah) => {
-      const needle = query.toLowerCase().trim();
+      const needle = plainArabic(query.trim()).toLowerCase();
       if (!needle) return true;
-      return `${surah.name} ${surah.english} ${surah.excerpt} ${surah.readerVerses.join(' ')}`.toLowerCase().includes(needle);
+      return surah.searchText.includes(needle);
     }),
     [query, surahs],
   );
@@ -211,11 +221,28 @@ export default function QuranScreen() {
     }
   }, [requestedSurah, surahs]);
   useEffect(() => {
-    if (selectedId && selectedId !== lastReadSurah) {
-      setLastReadSurah(selectedId);
-      requestAnimationFrame(() => readerListRef.current?.scrollToOffset({ offset: 0, animated: false }));
-    }
-  }, [lastReadSurah, selectedId, setLastReadSurah]);
+    if (!selectedId) return;
+    const resumeVerse = selectedId === lastReadSurah ? lastReadVerse : 0;
+    if (selectedId !== lastReadSurah) setLastReadSurah(selectedId);
+    requestAnimationFrame(() => {
+      if (resumeVerse > 0) {
+        readerListRef.current?.scrollToIndex({ index: resumeVerse, animated: false });
+      } else {
+        readerListRef.current?.scrollToOffset({ offset: 0, animated: false });
+      }
+    });
+  }, [selectedId]);
+  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+    const firstVisible = viewableItems[0]?.index;
+    if (typeof firstVisible !== 'number') return;
+    if (saveVerseTimeoutRef.current) clearTimeout(saveVerseTimeoutRef.current);
+    saveVerseTimeoutRef.current = setTimeout(() => {
+      setLastReadVerseRef.current(firstVisible);
+    }, 250);
+  }, []);
+  useEffect(() => () => {
+    if (saveVerseTimeoutRef.current) clearTimeout(saveVerseTimeoutRef.current);
+  }, []);
   const reader = selected
     ? prepareReader(Number(selected.id.replace('surah-', '')), selected.readerVerses)
     : { bismillah: false, verses: [] as string[] };
@@ -246,11 +273,12 @@ export default function QuranScreen() {
               {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
             </View>
           }
-          onViewableItemsChanged={({ viewableItems }) => {
-            const firstVisible = viewableItems[0]?.index;
-            if (typeof firstVisible === 'number') setLastReadVerse(firstVisible);
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={READER_VIEWABILITY_CONFIG}
+          onScrollToIndexFailed={({ index, averageItemLength }) => {
+            readerListRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
+            setTimeout(() => readerListRef.current?.scrollToIndex({ index, animated: false }), 50);
           }}
-          viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
           renderItem={({ item, index }) => (
             <View style={[styles.verseRow, { backgroundColor: colors.strongSurface, borderBottomColor: colors.border }]}>
               <Text style={[styles.verseNumber, { color: colors.gold }]}>{index + 1}</Text>

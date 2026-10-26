@@ -9,7 +9,7 @@ export const ISLAMIC_OCCASIONS: IslamicOccasion[] = [
   { month: 1, day: 10, name: 'عاشوراء' },
   { month: 2, day: 20, name: 'الأربعين' },
   { month: 3, day: 17, name: 'مولد النبي (ص) والإمام الصادق (ع)' },
-  { month: 6, day: 13, name: 'ولادة أمير المؤمنين (ع)' },
+  { month: 7, day: 13, name: 'ولادة أمير المؤمنين (ع)' },
   { month: 7, day: 27, name: 'المبعث النبوي' },
   { month: 8, day: 15, name: 'ولادة الإمام المهدي (عج)' },
   { month: 9, day: 19, name: 'ليلة القدر' },

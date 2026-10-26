@@ -1,4 +1,5 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -82,18 +83,19 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const { completedPrayers, togglePrayer, notificationsEnabled, selectedCity, prayerMethod } = useSalatak();
 
-  // Ticks every second so the countdown and "which prayer is next" stay live
-  // without the person needing to reopen the screen.
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
+    if (!isFocused) return undefined;
+    setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isFocused]);
 
   const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity, prayerMethod);
-  usePrayerNotifications(coords, notificationsEnabled, today);
+  usePrayerNotifications(coords, notificationsEnabled, today, prayerMethod);
 
   const prayers = PRAYER_ORDER.map((id) => ({
     id,
@@ -116,8 +118,11 @@ export default function HomeScreen() {
   if (today && nextPrayer) {
     const order = PRAYER_ORDER;
     const nextIndex = order.indexOf(nextId);
-    const prevId = nextIndex > 0 ? order[nextIndex - 1] : null;
-    const prevTime = prevId ? today[prevId].getTime() : nextPrayer.time.getTime() - 6 * 60 * 60 * 1000;
+    const prevTime = nextIndex > 0
+      ? today[order[nextIndex - 1]].getTime()
+      : nextPrayer.time.getTime() > today.fajr.getTime()
+        ? today.isha.getTime()
+        : nextPrayer.time.getTime() - 6 * 60 * 60 * 1000;
     const span = nextPrayer.time.getTime() - prevTime;
     const elapsed = now.getTime() - prevTime;
     progressPercent = span > 0 ? Math.min(100, Math.max(0, Math.round((elapsed / span) * 100))) : 0;
@@ -188,6 +193,21 @@ export default function HomeScreen() {
 
         <SectionTitle title="مواقيت الصلاة" action={`${completedCount}/5 مكتملة`} />
         <View style={[styles.prayerList, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {today ? (
+            <View style={[styles.astronomicalRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              {[
+                ['إمساك', today.imsak],
+                ['الشروق', today.sunrise],
+                ['الغروب', today.sunset],
+                ['منتصف الليل', today.midnight],
+              ].map(([label, time]) => (
+                <View key={label as string} style={styles.astronomicalItem}>
+                  <Text style={[styles.astronomicalLabel, { color: colors.mutedForeground }]}>{label as string}</Text>
+                  <Text style={[styles.astronomicalTime, { color: colors.deep }]}>{formatClock(time as Date)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
           {prayers.map((prayer, index) => {
             const isCompleted = completedPrayers[prayer.id];
             const isNext = prayer.id === nextId;
@@ -207,21 +227,6 @@ export default function HomeScreen() {
                 <View style={[styles.prayerIcon, { backgroundColor: isNext ? '#F4E4B7' : colors.secondary }]}>
                   <Feather name={prayer.icon} size={17} color={isNext ? colors.accentForeground : colors.primary} />
                 </View>
-                {today ? (
-                  <View style={[styles.astronomicalRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    {[
-                      ['إمساك', today.fajr],
-                      ['الشروق', today.sunrise],
-                      ['الغروب', today.sunset],
-                      ['منتصف الليل', today.midnight],
-                    ].map(([label, time]) => (
-                      <View key={label as string} style={styles.astronomicalItem}>
-                        <Text style={[styles.astronomicalLabel, { color: colors.mutedForeground }]}>{label as string}</Text>
-                        <Text style={[styles.astronomicalTime, { color: colors.deep }]}>{formatClock(time as Date)}</Text>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
                 <View style={styles.prayerNameWrap}>
                   <Text style={[styles.prayerName, { color: colors.deep }]}>{prayer.name}</Text>
                   <Text style={[styles.prayerEnglish, { color: colors.mutedForeground }]}>{prayer.english}</Text>

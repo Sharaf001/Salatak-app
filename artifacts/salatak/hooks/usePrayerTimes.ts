@@ -19,7 +19,7 @@ import { Coordinates, CalculationMethod, Madhab, PrayerTimes } from 'adhan';
  */
 
 export type PrayerId = 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
-export type PrayerTimeId = PrayerId | 'sunrise' | 'sunset' | 'midnight';
+export type PrayerTimeId = PrayerId | 'imsak' | 'sunrise' | 'sunset' | 'midnight';
 export type PrayerMethod = 'tehran' | 'qom';
 export const PRAYER_METHODS: Record<PrayerMethod, string> = {
   tehran: 'جامعة طهران',
@@ -65,9 +65,14 @@ export function computePrayerTimes(coordinates: Coordinates, date: Date, method:
   }
   params.madhab = Madhab.Shafi;
   const pt = new PrayerTimes(coordinates, date, params);
-  const midnight = new Date((pt.sunset.getTime() + pt.fajr.getTime()) / 2);
+  const tomorrow = new Date(date);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowPt = new PrayerTimes(coordinates, tomorrow, params);
+  const midnight = new Date((pt.sunset.getTime() + tomorrowPt.fajr.getTime()) / 2);
+  const imsak = new Date(pt.fajr.getTime() - 10 * 60 * 1000);
   return {
     fajr: pt.fajr,
+    imsak,
     sunrise: pt.sunrise,
     dhuhr: pt.dhuhr,
     asr: pt.asr,

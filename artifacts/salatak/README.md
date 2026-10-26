@@ -52,3 +52,15 @@ eas build --profile preview --platform android
 
 The main app files are in `artifacts/salatak/app/`. Local app data such as bookmarks,
 completed prayers, and the rak'ah counter is stored with AsyncStorage.
+
+## Religious text attribution
+
+The Arabic religious texts in `data/religious-texts.json` include material
+from [ShiaCompanion](https://github.com/saeedjassani/ShiaCompanion), licensed
+under the MIT License, Copyright (c) 2020 Saeed Jassani. The required MIT
+notice is retained through the source URLs stored with each entry. The
+Makarim al-Akhlaq excerpt is attributed separately to Sahifa Sajjadiya 20.
+
+The Hijri calendar and occasions are calculated estimates based on the civil
+calendar. Local moon-sighting authorities may determine dates one day earlier
+or later.
