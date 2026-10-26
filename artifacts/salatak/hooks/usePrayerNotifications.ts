@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 import { AppState, Platform } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import type { PrayerId, PrayerMethod } from './usePrayerTimes';
@@ -21,7 +22,11 @@ import { Coordinates } from 'adhan';
 const isExpoGo =
   Constants.appOwnership === 'expo' ||
   Constants.executionEnvironment === 'storeClient';
-const notificationsUnavailableInCurrentBuild = Platform.OS === 'android' && isExpoGo;
+const hasNotificationsNativeModule =
+  Platform.OS !== 'android' ||
+  Boolean(requireOptionalNativeModule('ExpoTopicSubscriptionModule'));
+const notificationsUnavailableInCurrentBuild =
+  (Platform.OS === 'android' && isExpoGo) || !hasNotificationsNativeModule;
 
 const PRAYER_LABELS: Record<PrayerId, string> = {
   fajr: 'حان الآن وقت صلاة الفجر',
