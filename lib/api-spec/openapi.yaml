@@ -107,7 +107,7 @@ components:
         - status
     Surah:
       type: object
-      required: [id, slug, number, name, english, verseCount, revelationType, excerpt, verses]
+      required: [id, slug, number, name, english, verseCount, revelationType, excerpt]
       properties:
         id: { type: integer }
         slug: { type: string }
@@ -117,9 +117,6 @@ components:
         verseCount: { type: integer }
         revelationType: { type: string }
         excerpt: { type: string }
-        verses:
-          type: array
-          items: { type: string }
     Dua:
       type: object
       required: [id, slug, category, title, body, count]

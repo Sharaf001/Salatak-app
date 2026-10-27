@@ -47,6 +47,12 @@ export type ManualCity = {
 
 export const MANUAL_CITIES: ManualCity[] = [
   { id: 'beirut', name: 'بيروت', country: 'لبنان', latitude: 33.8938, longitude: 35.5018 },
+  { id: 'najaf', name: 'النجف', country: 'العراق', latitude: 32.0003, longitude: 44.3354 },
+  { id: 'karbala', name: 'كربلاء', country: 'العراق', latitude: 32.616, longitude: 44.0249 },
+  { id: 'qom', name: 'قم', country: 'إيران', latitude: 34.6416, longitude: 50.8746 },
+  { id: 'mashhad', name: 'مشهد', country: 'إيران', latitude: 36.2605, longitude: 59.6168 },
+  { id: 'baghdad', name: 'بغداد', country: 'العراق', latitude: 33.3152, longitude: 44.3661 },
+  { id: 'tehran', name: 'طهران', country: 'إيران', latitude: 35.6892, longitude: 51.389 },
   { id: 'new-york', name: 'نيويورك', country: 'الولايات المتحدة', latitude: 40.7128, longitude: -74.006 },
   { id: 'london', name: 'لندن', country: 'المملكة المتحدة', latitude: 51.5072, longitude: -0.1276 },
   { id: 'toronto', name: 'تورنتو', country: 'كندا', latitude: 43.6532, longitude: -79.3832 },

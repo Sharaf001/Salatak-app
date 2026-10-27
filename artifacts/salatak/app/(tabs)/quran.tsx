@@ -197,7 +197,7 @@ export default function QuranScreen() {
           verses: s.verseCount,
           type: s.revelationType,
           excerpt: s.excerpt,
-          readerVerses: s.verses.length > 0 ? s.verses : versesFor(Number(s.slug.replace('surah-', ''))),
+          readerVerses: versesFor(Number(s.slug.replace('surah-', ''))),
         }))
       : SURAH_INDEX.map((s) => ({ ...s, readerVerses: versesFor(s.n) }));
 

@@ -28,8 +28,7 @@ export const ListSurahsResponseItem = zod.object({
   "english": zod.string(),
   "verseCount": zod.number().int(),
   "revelationType": zod.string(),
-  "excerpt": zod.string(),
-  "verses": zod.array(zod.string())
+  "excerpt": zod.string()
 })
 export const ListSurahsResponse = zod.array(ListSurahsResponseItem)
 

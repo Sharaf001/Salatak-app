@@ -16,7 +16,19 @@ router.use((_req, res, next) => {
 });
 
 router.get("/surahs", async (_req, res) => {
-  const rows = await db.select().from(surahsTable).orderBy(surahsTable.id);
+  const rows = await db
+    .select({
+      id: surahsTable.id,
+      slug: surahsTable.slug,
+      number: surahsTable.number,
+      name: surahsTable.name,
+      english: surahsTable.english,
+      verseCount: surahsTable.verseCount,
+      revelationType: surahsTable.revelationType,
+      excerpt: surahsTable.excerpt,
+    })
+    .from(surahsTable)
+    .orderBy(surahsTable.id);
   res.json(rows);
 });
 

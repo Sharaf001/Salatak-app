@@ -18,7 +18,6 @@ export interface Surah {
   verseCount: number;
   revelationType: string;
   excerpt: string;
-  verses: string[];
 }
 
 export interface Dua {

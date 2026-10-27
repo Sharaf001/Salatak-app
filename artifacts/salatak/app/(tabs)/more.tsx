@@ -1,13 +1,14 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Href, router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as Location from 'expo-location';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 import { notificationsSupported } from '@/hooks/usePrayerNotifications';
-import { MANUAL_CITIES, PRAYER_METHODS, usePrayerTimes, type PrayerMethod } from '@/hooks/usePrayerTimes';
+import { MANUAL_CITIES, PRAYER_METHODS, type ManualCity, type PrayerMethod } from '@/hooks/usePrayerTimes';
 
 function ToolRow({
   icon,
@@ -36,9 +37,58 @@ export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { rakahCount, incrementRakah, resetRakah, bookmarks, notificationsEnabled, toggleNotifications, selectedCity, setSelectedCity, prayerMethod, setPrayerMethod } = useSalatak();
-  const { coords, locationLabel } = usePrayerTimes(new Date(), selectedCity, prayerMethod);
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [methodPickerOpen, setMethodPickerOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const [geocodedCities, setGeocodedCities] = useState<ManualCity[]>([]);
+  const [citySearchLoading, setCitySearchLoading] = useState(false);
+  const [citySearchError, setCitySearchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cityPickerOpen) return undefined;
+    const query = citySearch.trim();
+    if (!query) {
+      setGeocodedCities([]);
+      setCitySearchError(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      setCitySearchLoading(true);
+      setCitySearchError(null);
+      Location.geocodeAsync(query)
+        .then((places) => {
+          if (cancelled) return;
+          const results = places
+            .filter((place) => Number.isFinite(place.latitude) && Number.isFinite(place.longitude))
+            .map((place, index) => ({
+              id: `search-${place.latitude}-${place.longitude}-${index}`,
+              name: query,
+              country: '',
+              latitude: place.latitude,
+              longitude: place.longitude,
+            }));
+          setGeocodedCities(results);
+        })
+        .catch(() => {
+          if (!cancelled) setCitySearchError('تعذر العثور على هذا الموقع');
+        })
+        .finally(() => {
+          if (!cancelled) setCitySearchLoading(false);
+        });
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [cityPickerOpen, citySearch]);
+
+  const normalizedSearch = citySearch.trim().toLocaleLowerCase();
+  const visibleCities = normalizedSearch
+    ? MANUAL_CITIES.filter((city) => `${city.name} ${city.country} ${city.id}`.toLocaleLowerCase().includes(normalizedSearch))
+    : MANUAL_CITIES;
+  const cityResults = [...visibleCities, ...geocodedCities.filter((city) => !visibleCities.some((item) => item.id === city.id))];
 
   const countRakah = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -112,9 +162,9 @@ export default function MoreScreen() {
               </Text>
             </View>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="اختيار الموقع أو المدينة" onPress={() => setCityPickerOpen(true)} style={styles.settingRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel="اختيار الموقع أو المدينة" onPress={() => { setCitySearch(''); setCityPickerOpen(true); }} style={styles.settingRow}>
             <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}><Feather name="map-pin" size={17} color={colors.primary} /></View>
-            <View style={styles.locationCopy}><Text style={[styles.settingText, { color: colors.deep }]}>الموقع</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>{selectedCity ? `${selectedCity.name}، ${selectedCity.country}` : locationLabel ?? (coords ? 'موقعك الحالي' : 'غير محدد')}</Text></View>
+            <View style={styles.locationCopy}><Text style={[styles.settingText, { color: colors.deep }]}>الموقع</Text><Text style={[styles.settingValue, { color: colors.mutedForeground }]}>{selectedCity ? `${selectedCity.name}، ${selectedCity.country}` : 'موقع الجهاز'}</Text></View>
             <Feather name="chevron-left" size={17} color={colors.mutedForeground} />
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="اختيار طريقة حساب أوقات الصلاة" onPress={() => setMethodPickerOpen(true)} style={styles.settingRow}>
@@ -129,12 +179,23 @@ export default function MoreScreen() {
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.deep }]}>اختر مدينتك</Text>
             <Text style={[styles.modalSubtitle, { color: colors.mutedForeground }]}>تُستخدم المدينة للحساب عند تعذر الوصول إلى موقعك.</Text>
-            {MANUAL_CITIES.map((city) => (
+            <TextInput
+              accessibilityLabel="البحث عن مدينة"
+              placeholder="ابحث عن مدينة"
+              placeholderTextColor={colors.mutedForeground}
+              value={citySearch}
+              onChangeText={setCitySearch}
+              style={[styles.citySearch, { color: colors.deep, borderColor: colors.border }]}
+            />
+            {citySearchLoading ? <ActivityIndicator color={colors.primary} style={styles.searchIndicator} /> : null}
+            {citySearchError ? <Text style={[styles.searchError, { color: colors.mutedForeground }]}>{citySearchError}</Text> : null}
+            {cityResults.map((city) => (
               <Pressable key={city.id} onPress={() => { setSelectedCity(city); setCityPickerOpen(false); }} style={[styles.cityRow, { borderBottomColor: colors.border }]}>
                 <Text style={[styles.cityText, { color: colors.deep }]}>{city.name}، {city.country}</Text>
                 {selectedCity?.id === city.id && <Feather name="check" size={17} color={colors.primary} />}
               </Pressable>
             ))}
+            {!citySearchLoading && citySearch.length > 0 && cityResults.length === 0 ? <Text style={[styles.searchError, { color: colors.mutedForeground }]}>لا توجد نتائج</Text> : null}
             <Pressable onPress={() => setCityPickerOpen(false)} style={styles.cancelButton}><Text style={[styles.cancelText, { color: colors.primary }]}>إلغاء</Text></Pressable>
           </View>
         </View>
@@ -200,6 +261,9 @@ const styles = StyleSheet.create({
   modalCard: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 35 },
   modalTitle: { fontSize: 20, fontWeight: '700', textAlign: 'right' },
   modalSubtitle: { fontSize: 12, textAlign: 'right', marginTop: 6, marginBottom: 12 },
+  citySearch: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, textAlign: 'right', marginBottom: 8 },
+  searchIndicator: { marginVertical: 8 },
+  searchError: { fontSize: 12, textAlign: 'right', paddingVertical: 8 },
   cityRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },
   cityText: { fontSize: 15, textAlign: 'right' },
   cancelButton: { alignItems: 'center', paddingTop: 18 },

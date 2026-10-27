@@ -1,5 +1,5 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { customFetch } from "./custom-fetch";
+import { customFetch, isBaseUrlConfigured } from "./custom-fetch";
 import type { ErrorType } from "./custom-fetch";
 import type {
   Azkar,
@@ -23,6 +23,7 @@ function makeListHook<T>(path: string, queryKey: string) {
       queryKey: [queryKey],
       queryFn: ({ signal }) => customFetch<T[]>(path, { signal }),
       ...options?.query,
+      enabled: isBaseUrlConfigured() && options?.query?.enabled !== false,
     });
   };
 }
