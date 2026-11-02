@@ -7,6 +7,7 @@ import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // IMPORTANT: iOS 26 uses NativeTabs for native tabs with liquid glass support.
 // NativeTabs intentionally does NOT use custom design tokens — liquid glass
@@ -43,36 +44,57 @@ function ClassicTabLayout() {
   const isDark = colorScheme === 'dark';
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.mutedForeground,
-        headerShown: true,
-        tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: isIOS ? 'transparent' : colors.background,
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: colors.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
-        },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
+      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: colors.mutedForeground,
+      headerShown: true,
+      tabBarStyle: {
+        position: 'absolute',
+        left: isWeb ? 0 : 14,
+        right: isWeb ? 0 : 14,
+        bottom: isWeb ? 0 : Math.max(insets.bottom, 8),
+        height: isWeb ? 84 : 68,
+        paddingTop: isWeb ? 0 : 7,
+        paddingBottom: isWeb ? 0 : 7,
+        borderRadius: isWeb ? 0 : 34,
+        borderWidth: isWeb ? 1 : StyleSheet.hairlineWidth,
+        borderTopColor: isWeb ? colors.border : 'rgba(255,255,255,0.42)',
+        borderColor: isWeb ? colors.border : isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.65)',
+        backgroundColor: isWeb ? colors.background : 'transparent',
+        elevation: 0,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: isWeb ? 0 : isDark ? 0.3 : 0.14,
+        shadowRadius: 16,
+        overflow: 'hidden',
+      },
+      tabBarBackground: () =>
+        !isWeb ? (
+          <BlurView
+            intensity={Platform.OS === 'android' ? 85 : 100}
+            tint={isDark ? 'dark' : 'light'}
+            experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
+            style={styles.glassBackground}
+          >
             <View
               style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: colors.background },
+                styles.glassTint,
+                { backgroundColor: isDark ? 'rgba(16,35,33,0.68)' : 'rgba(255,252,246,0.72)' },
               ]}
             />
-          ) : null,
+          </BlurView>
+        ) : (
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.background },
+            ]}
+          />
+        ),
       }}
     >
       <Tabs.Screen
@@ -111,6 +133,17 @@ function ClassicTabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  glassBackground: {
+    ...StyleSheet.absoluteFill,
+    overflow: 'hidden',
+    borderRadius: 34,
+  },
+  glassTint: {
+    ...StyleSheet.absoluteFill,
+  },
+});
 
 export default function TabLayout() {
   if (isLiquidGlassAvailable()) {
