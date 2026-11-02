@@ -54,13 +54,13 @@ function ClassicTabLayout() {
       headerShown: true,
       tabBarStyle: {
         position: 'absolute',
-        left: isWeb ? 0 : 8,
-        right: isWeb ? 0 : 8,
+        left: isWeb ? 0 : 20,
+        right: isWeb ? 0 : 20,
         bottom: isWeb ? 0 : Math.max(insets.bottom, 8),
-        height: isWeb ? 84 : 68,
-        paddingTop: isWeb ? 0 : 7,
-        paddingBottom: isWeb ? 0 : 7,
-        borderRadius: isWeb ? 0 : 34,
+        height: isWeb ? 84 : 64,
+        paddingTop: isWeb ? 0 : 5,
+        paddingBottom: isWeb ? 0 : 5,
+        borderRadius: isWeb ? 0 : 32,
         borderWidth: isWeb ? 1 : StyleSheet.hairlineWidth,
         borderTopColor: isWeb ? colors.border : 'rgba(255,255,255,0.42)',
         borderColor: isWeb ? colors.border : isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.65)',
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   glassBackground: {
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
-    borderRadius: 34,
+    borderRadius: 32,
   },
   glassTint: {
     ...StyleSheet.absoluteFill,
