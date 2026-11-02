@@ -54,8 +54,8 @@ function ClassicTabLayout() {
       headerShown: true,
       tabBarStyle: {
         position: 'absolute',
-        left: isWeb ? 0 : 14,
-        right: isWeb ? 0 : 14,
+        left: isWeb ? 0 : 8,
+        right: isWeb ? 0 : 8,
         bottom: isWeb ? 0 : Math.max(insets.bottom, 8),
         height: isWeb ? 84 : 68,
         paddingTop: isWeb ? 0 : 7,
