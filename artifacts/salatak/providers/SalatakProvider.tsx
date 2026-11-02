@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { PrayerMethod } from '@/hooks/usePrayerTimes';
+import type { PrayerId, PrayerMethod } from '@/hooks/usePrayerTimes';
 
 const STORAGE_KEY = '@salatak/state';
 
@@ -17,6 +17,13 @@ export type SalatakState = {
   lastReadSurah: string | null;
   lastReadVerse: number;
   prayerMethod: PrayerMethod;
+  asrMadhab: 'shafi' | 'hanafi';
+  prayerOffsets: Record<PrayerId, number>;
+  hijriOffset: number;
+  timeFormat: '12h' | '24h';
+  quranTextSize: number;
+  prayerNotifications: Record<PrayerId, boolean>;
+  notificationLeadMinutes: number;
 };
 
 type SalatakContextValue = SalatakState & {
@@ -36,6 +43,14 @@ type SalatakContextValue = SalatakState & {
   setLastReadSurah: (surahId: string) => void;
   setLastReadVerse: (verse: number) => void;
   setPrayerMethod: (method: PrayerMethod) => void;
+  setAsrMadhab: (madhab: 'shafi' | 'hanafi') => void;
+  setPrayerOffset: (prayer: PrayerId, minutes: number) => void;
+  setHijriOffset: (offset: number) => void;
+  setTimeFormat: (format: '12h' | '24h') => void;
+  setQuranTextSize: (size: number) => void;
+  setPrayerNotification: (prayer: PrayerId, enabled: boolean) => void;
+  setNotificationLeadMinutes: (minutes: number) => void;
+  resetSettings: () => void;
 };
 
 const initialState: SalatakState = {
@@ -51,6 +66,13 @@ const initialState: SalatakState = {
   lastReadSurah: null,
   lastReadVerse: 0,
   prayerMethod: 'tehran',
+  asrMadhab: 'shafi',
+  prayerOffsets: { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 },
+  hijriOffset: 0,
+  timeFormat: '24h',
+  quranTextSize: 22,
+  prayerNotifications: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
+  notificationLeadMinutes: 0,
 };
 
 const SalatakContext = createContext<SalatakContextValue | null>(null);
@@ -131,12 +153,31 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       setLastReadSurah: (surahId) => persist({ ...state, lastReadSurah: surahId }),
       setLastReadVerse: (verse) => persist({ ...state, lastReadVerse: verse }),
       setPrayerMethod: (prayerMethod) => persist({ ...state, prayerMethod }),
+      setAsrMadhab: (asrMadhab) => persist({ ...state, asrMadhab }),
+      setPrayerOffset: (prayer, minutes) => persist({ ...state, prayerOffsets: { ...state.prayerOffsets, [prayer]: minutes } }),
+      setHijriOffset: (hijriOffset) => persist({ ...state, hijriOffset: Math.max(-2, Math.min(2, hijriOffset)) }),
+      setTimeFormat: (timeFormat) => persist({ ...state, timeFormat }),
+      setQuranTextSize: (quranTextSize) => persist({ ...state, quranTextSize: Math.max(16, Math.min(32, quranTextSize)) }),
+      setPrayerNotification: (prayer, enabled) => persist({ ...state, prayerNotifications: { ...state.prayerNotifications, [prayer]: enabled } }),
+      setNotificationLeadMinutes: (notificationLeadMinutes) => persist({ ...state, notificationLeadMinutes: Math.max(0, Math.min(60, notificationLeadMinutes)) }),
+      resetSettings: () => persist({ ...state, ...settingsDefaults }),
     }),
     [isReady, state],
   );
 
   return <SalatakContext.Provider value={value}>{children}</SalatakContext.Provider>;
 }
+
+const settingsDefaults = {
+  prayerMethod: initialState.prayerMethod,
+  asrMadhab: initialState.asrMadhab,
+  prayerOffsets: initialState.prayerOffsets,
+  hijriOffset: initialState.hijriOffset,
+  timeFormat: initialState.timeFormat,
+  quranTextSize: initialState.quranTextSize,
+  prayerNotifications: initialState.prayerNotifications,
+  notificationLeadMinutes: initialState.notificationLeadMinutes,
+};
 
 function getDayKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;

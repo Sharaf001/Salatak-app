@@ -42,7 +42,8 @@ function formatGregorianArabic(date: Date): string {
   return `${weekday}، ${day} ${month} ${year}`;
 }
 
-function formatClock(date: Date): string {
+function formatClock(date: Date, format: '12h' | '24h'): string {
+  if (format === '12h') return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   const h = String(date.getHours()).padStart(2, '0');
   const m = String(date.getMinutes()).padStart(2, '0');
   return `${h}:${m}`;
@@ -82,7 +83,7 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { completedPrayers, togglePrayer, notificationsEnabled, selectedCity, prayerMethod } = useSalatak();
+  const { completedPrayers, togglePrayer, notificationsEnabled, selectedCity, prayerMethod, asrMadhab, prayerOffsets, prayerNotifications, notificationLeadMinutes, timeFormat, hijriOffset } = useSalatak();
 
   const [now, setNow] = useState(() => new Date());
   useFocusEffect(useCallback(() => {
@@ -91,21 +92,21 @@ export default function HomeScreen() {
     return () => clearInterval(timer);
   }, []));
 
-  const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity, prayerMethod);
-  usePrayerNotifications(coords, notificationsEnabled, today, prayerMethod);
+  const { today, sunset, nextPrayer, locationLabel, coords, loading: locationLoading } = usePrayerTimes(now, selectedCity, prayerMethod, asrMadhab, prayerOffsets);
+  usePrayerNotifications(coords, notificationsEnabled, today, prayerMethod, asrMadhab, prayerOffsets, prayerNotifications, notificationLeadMinutes);
 
   const prayers = PRAYER_ORDER.map((id) => ({
     id,
     ...PRAYER_META[id],
-    time: today ? formatClock(today[id]) : '--:--',
+    time: today ? formatClock(today[id], timeFormat) : '--:--',
   }));
   const completedCount = prayers.filter((prayer) => completedPrayers[prayer.id]).length;
 
   const nextId: PrayerId = nextPrayer?.id ?? 'maghrib';
   const nextMeta = PRAYER_META[nextId];
-  const nextTimeLabel = nextPrayer ? formatClock(nextPrayer.time) : '--:--';
+  const nextTimeLabel = nextPrayer ? formatClock(nextPrayer.time, timeFormat) : '--:--';
   const countdownLabel = nextPrayer ? formatCountdown(nextPrayer.time.getTime() - now.getTime()) : '--:--:--';
-  const sunsetLabel = sunset ? formatClock(sunset) : '--:--';
+  const sunsetLabel = sunset ? formatClock(sunset, timeFormat) : '--:--';
   const locationText = coords ? (locationLabel ?? 'موقعك الحالي') : 'لم يتم تحديد الموقع';
 
   // Progress through the gap between the previous and next prayer, for the
@@ -161,7 +162,7 @@ export default function HomeScreen() {
           <Ionicons name="location-outline" size={16} color={colors.primary} />
           <Text style={[styles.locationText, { color: colors.deepMuted }]}>{locationText}</Text>
           <View style={styles.locationSpacer} />
-          <Text style={[styles.hijriText, { color: colors.primary }]}>{formatHijriDate(now)}</Text>
+          <Text style={[styles.hijriText, { color: colors.primary }]}>{formatHijriDate(now, hijriOffset)}</Text>
           <Feather name="chevron-left" size={15} color={colors.primary} />
         </View>
         <Text style={[styles.methodText, { color: colors.mutedForeground }]}>طريقة الحساب: {PRAYER_METHODS[prayerMethod]}</Text>
@@ -200,7 +201,7 @@ export default function HomeScreen() {
               ].map(([label, time]) => (
                 <View key={label as string} style={styles.astronomicalItem}>
                   <Text style={[styles.astronomicalLabel, { color: colors.mutedForeground }]}>{label as string}</Text>
-                  <Text style={[styles.astronomicalTime, { color: colors.deep }]}>{formatClock(time as Date)}</Text>
+                  <Text style={[styles.astronomicalTime, { color: colors.deep }]}>{formatClock(time as Date, timeFormat)}</Text>
                 </View>
               ))}
             </View>

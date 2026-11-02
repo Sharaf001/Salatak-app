@@ -64,7 +64,9 @@ export function gregorianToHijri(date: Date): HijriDate {
   return { year, month, day, monthName: HIJRI_MONTHS[month - 1] ?? '' };
 }
 
-export function formatHijriDate(date: Date): string {
-  const hijri = gregorianToHijri(date);
+export function formatHijriDate(date: Date, offset = 0): string {
+  const adjusted = new Date(date);
+  adjusted.setDate(adjusted.getDate() + offset);
+  const hijri = gregorianToHijri(adjusted);
   return `${toArabicIndicDigits(hijri.day)} ${hijri.monthName} ${toArabicIndicDigits(hijri.year)}`;
 }

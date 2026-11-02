@@ -60,6 +60,10 @@ export function usePrayerNotifications(
   enabled: boolean,
   today: Record<PrayerId, Date> | null,
   method: PrayerMethod,
+  asrMadhab: 'shafi' | 'hanafi',
+  offsets: Partial<Record<PrayerId, number>>,
+  prayerNotifications: Record<PrayerId, boolean>,
+  leadMinutes: number,
 ) {
   const lastScheduledDay = useRef<string | null>(null);
   const todayRef = useRef(today);
@@ -138,13 +142,14 @@ export function usePrayerNotifications(
         for (let offset = 1; offset <= 7; offset += 1) {
           const date = new Date(now);
           date.setDate(date.getDate() + offset);
-          const prayerTimes = computePrayerTimes(coordinates, date, method);
+          const prayerTimes = computePrayerTimes(coordinates, date, method, asrMadhab, offsets);
           for (const prayer of PRAYER_ORDER) {
             upcoming.push({ id: prayer, time: prayerTimes[prayer] });
           }
         }
 
-        for (const prayer of upcoming) {
+        const nowWithLead = Date.now() + leadMinutes * 60_000;
+        for (const prayer of upcoming.filter(({ id, time }) => prayerNotifications[id] && time.getTime() > nowWithLead)) {
           if (cancelled) return;
           await Notifications.scheduleNotificationAsync({
             content: {
@@ -156,7 +161,7 @@ export function usePrayerNotifications(
             },
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.DATE,
-              date: prayer.time,
+              date: new Date(prayer.time.getTime() - leadMinutes * 60_000),
             },
           });
         }
@@ -172,7 +177,7 @@ export function usePrayerNotifications(
       cancelled = true;
       appStateSubscription.remove();
     };
-  }, [coords?.latitude, coords?.longitude, enabled, method, foregroundVersion]);
+  }, [coords?.latitude, coords?.longitude, enabled, method, asrMadhab, offsets, prayerNotifications, leadMinutes, foregroundVersion]);
 }
 
 async function cancelPrayerNotifications(Notifications: typeof import('expo-notifications')) {

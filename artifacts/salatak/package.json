@@ -8,7 +8,7 @@
     "dev:local": "pnpm exec expo start",
     "dev:android": "pnpm exec expo run:android",
     "dev:ios": "pnpm exec expo run:ios",
-    "test": "pnpm exec tsx --test tests/qibla.test.ts",
+    "test": "pnpm exec tsx --test tests/*.test.ts",
     "build": "node scripts/build.js",
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"

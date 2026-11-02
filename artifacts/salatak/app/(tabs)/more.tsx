@@ -118,6 +118,7 @@ export default function MoreScreen() {
           <ToolRow icon="hash" title="عداد الركعات" subtitle={`${rakahCount} ركعات مسجلة اليوم`} onPress={countRakah} />
           <ToolRow icon="bookmark" title="المحفوظات" subtitle={`${bookmarks.length} عناصر محفوظة`} onPress={() => router.push('/bookmarks' as Href)} />
           <ToolRow icon="compass" title="اتجاه القبلة" subtitle="اضبط موقعك لمعرفة الاتجاه" onPress={() => router.push('/qibla' as Href)} />
+          <ToolRow icon="settings" title="الإعدادات" subtitle="طريقة الحساب والعرض والتنبيهات" onPress={() => router.push('/settings' as Href)} />
         </View>
 
         <Text style={[styles.sectionTitle, { color: colors.deep, marginTop: 25 }]}>المميزات</Text>

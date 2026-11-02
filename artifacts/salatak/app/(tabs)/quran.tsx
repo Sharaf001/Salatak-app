@@ -178,7 +178,7 @@ function prepareReader(n: number, raw: string[]): { bismillah: boolean; verses: 
 export default function QuranScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { toggleBookmark, isBookmarked, lastReadSurah, lastReadVerse, setLastReadSurah, setLastReadVerse } = useSalatak();
+  const { toggleBookmark, isBookmarked, lastReadSurah, lastReadVerse, setLastReadSurah, setLastReadVerse, quranTextSize } = useSalatak();
   const { surah: requestedSurah } = useLocalSearchParams<{ surah?: string }>();
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -285,7 +285,7 @@ export default function QuranScreen() {
           renderItem={({ item, index }) => (
             <View style={[styles.verseRow, { backgroundColor: colors.strongSurface, borderBottomColor: colors.border }]}>
               <Text style={[styles.verseNumber, { color: colors.gold }]}>{index + 1}</Text>
-              <Text style={[styles.verseText, { color: colors.primaryForeground }]}>{item}</Text>
+              <Text style={[styles.verseText, { color: colors.primaryForeground, fontSize: quranTextSize, lineHeight: Math.round(quranTextSize * 1.8) }]}>{item}</Text>
             </View>
           )}
           ListFooterComponent={
