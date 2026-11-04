@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Pressable,
   FlatList,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,7 +12,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import Constants from 'expo-constants';
 import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
@@ -275,26 +273,7 @@ export default function QuranScreen() {
     }).catch((error) => {
       console.warn('Quran audio mode setup failed:', error);
     });
-    const canUseLockScreenControls =
-      Platform.OS !== 'web' &&
-      Constants.appOwnership !== 'expo' &&
-      Constants.executionEnvironment !== 'storeClient';
-    if (!selected || !canUseLockScreenControls) return undefined;
-    try {
-      audioPlayer.setActiveForLockScreen(true, {
-        title: `تلاوة سورة ${selected.name}`,
-        artist: 'صلاتك',
-      });
-    } catch (error) {
-      console.warn('Quran lock-screen controls are unavailable in this build:', error);
-    }
-    return () => {
-      try {
-        audioPlayer.setActiveForLockScreen(false);
-      } catch (error) {
-        console.warn('Quran lock-screen controls cleanup failed:', error);
-      }
-    };
+    return undefined;
   }, [audioPlayer, selected?.id, selected?.name]);
 
   return (
