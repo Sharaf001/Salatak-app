@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Pressable,
   FlatList,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import Constants from 'expo-constants';
 import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
@@ -264,6 +266,23 @@ export default function QuranScreen() {
     selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null,
   );
   const audioStatus = useAudioPlayerStatus(audioPlayer);
+  const playRecitation = () => {
+    audioPlayer.play();
+    if (Platform.OS === 'web' || Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient') return;
+    try {
+      audioPlayer.setActiveForLockScreen(true, {
+        title: `تلاوة سورة ${selected?.name ?? ''}`,
+        artist: 'صلاتك',
+      }, {
+        showSeekForward: true,
+        showSeekBackward: true,
+        seekForwardIntervalSeconds: 10,
+        seekBackwardIntervalSeconds: 10,
+      });
+    } catch (error) {
+      console.warn('Quran media controls are unavailable in this build:', error);
+    }
+  };
   useEffect(() => {
     setAudioModeAsync({
       playsInSilentMode: true,
@@ -292,7 +311,7 @@ export default function QuranScreen() {
                   <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
                   <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : 'تشغيل تلاوة السورة'} onPress={() => audioStatus.playing ? audioPlayer.pause() : audioPlayer.play()} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : 'تشغيل تلاوة السورة'} onPress={() => audioStatus.playing ? audioPlayer.pause() : playRecitation()} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
                 <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
               </View>
               {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
