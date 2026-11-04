@@ -21,7 +21,7 @@ export default function DuaReaderScreen() {
   const audio = DUA_AUDIO[id ?? ''];
   const audioPlayer = useAudioPlayer(
     audio ? { uri: audio.url, name: `${title} - ${audio.reciter}` } : null,
-    { downloadFirst: true },
+    { preferredForwardBufferDuration: 30 },
   );
   const audioStatus = useAudioPlayerStatus(audioPlayer);
 
@@ -64,7 +64,7 @@ export default function DuaReaderScreen() {
             <Text style={[styles.audioButtonText, { color: colors.primaryForeground }]}>{audioStatus.playing ? 'إيقاف الصوت' : 'تشغيل الصوت'}</Text>
           </Pressable>
           <Text style={[styles.audioNote, { color: colors.deepMuted }]}>
-            {audio ? `بصوت ${audio.reciter}` : 'الصوت العربي لأباذر الحلواجي غير متاح لهذا الدعاء حالياً'}
+            {audioStatus.error ?? (audio ? `بصوت ${audio.reciter}` : 'الصوت العربي لأباذر الحلواجي غير متاح لهذا الدعاء حالياً')}
           </Text>
           {audio && <Pressable onPress={() => void Linking.openURL(audio.sourceUrl)}><Text style={[styles.sourceLink, { color: colors.primary }]}>مصدر الصوت</Text></Pressable>}
         </View>
