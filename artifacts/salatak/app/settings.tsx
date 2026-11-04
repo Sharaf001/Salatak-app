@@ -1,14 +1,17 @@
 import { Feather } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatGeocodedCity, MANUAL_CITIES, PRAYER_METHODS, type ManualCity, type PrayerId } from '@/hooks/usePrayerTimes';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 
 const PRAYERS: Array<[PrayerId, string]> = [['fajr', 'الفجر'], ['dhuhr', 'الظهر'], ['asr', 'العصر'], ['maghrib', 'المغرب'], ['isha', 'العشاء']];
+const PRIVACY_POLICY_URL = Constants.expoConfig?.extra?.privacyPolicyUrl as string | undefined;
+const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
 export default function SettingsScreen() {
   const colors = useColors();
@@ -91,6 +94,9 @@ export default function SettingsScreen() {
         <Section title="حول التطبيق" colors={colors}>
           <Text style={[styles.about, { color: colors.mutedForeground }]}>صلاتك · مواقيت الصلاة والقرآن والأذكار</Text>
           <Text style={[styles.about, { color: colors.mutedForeground }]}>المحتوى الديني من مصادره الموثقة، والتاريخ الهجري حساب تقريبي.</Text>
+          <Text style={[styles.about, { color: colors.mutedForeground }]}>الإصدار {APP_VERSION}</Text>
+          {PRIVACY_POLICY_URL && <Choice label="سياسة الخصوصية" value="فتح" onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)} colors={colors} />}
+          <Choice label="الاعتمادات والمصادر" value="عرض" onPress={() => router.push('/wallpaper-credits')} colors={colors} />
           <Pressable onPress={() => Alert.alert('إعادة الإعدادات', 'هل تريد إعادة إعدادات الصلاة والعرض والتنبيهات؟', [{ text: 'إلغاء', style: 'cancel' }, { text: 'إعادة', style: 'destructive', onPress: state.resetSettings }])}><Text style={[styles.reset, { color: colors.primary }]}>إعادة الإعدادات</Text></Pressable>
         </Section>
       </ScrollView>
