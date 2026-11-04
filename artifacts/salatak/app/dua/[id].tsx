@@ -19,10 +19,14 @@ export default function DuaReaderScreen() {
   const title = remote?.title ?? fallback?.title ?? 'الدعاء';
   const body = remote?.body && remote.body.length > 200 ? remote.body : fallback?.body ?? remote?.body ?? '';
   const audio = DUA_AUDIO[id ?? ''];
-  const audioPlayer = useAudioPlayer(audio?.url ?? null);
+  const audioPlayer = useAudioPlayer(
+    audio ? { uri: audio.url, name: `${title} - ${audio.reciter}` } : null,
+    { downloadFirst: true },
+  );
   const audioStatus = useAudioPlayerStatus(audioPlayer);
 
   useEffect(() => {
+    audioPlayer.volume = 1;
     setAudioModeAsync({
       playsInSilentMode: true,
       allowsRecording: false,
@@ -31,7 +35,7 @@ export default function DuaReaderScreen() {
     }).catch((error) => {
       console.warn('Dua audio mode setup failed:', error);
     });
-  }, []);
+  }, [audioPlayer]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
