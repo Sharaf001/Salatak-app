@@ -6,6 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useColors } from '@/hooks/useColors';
 import { gregorianToHijri, toArabicIndicDigits } from '@/hooks/useHijriDate';
 import { occasionFor } from '@/data/islamic-occasions';
+import { useSalatak } from '@/providers/SalatakProvider';
 
 const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
@@ -19,29 +20,29 @@ function addDays(date: Date, days: number): Date {
   return result;
 }
 
-function findMonthStart(date: Date): Date {
+function findMonthStart(date: Date, hijriOffset: number): Date {
   let current = dateAtLocalNoon(date);
   for (let offset = 0; offset < 32; offset += 1) {
-    if (gregorianToHijri(current).day === 1) return current;
+    if (gregorianToHijri(addDays(current, hijriOffset)).day === 1) return current;
     current = addDays(current, -1);
   }
   return current;
 }
 
-function findHijriMonthStart(currentMonthStart: Date, monthOffset: number): Date {
+function findHijriMonthStart(currentMonthStart: Date, monthOffset: number, hijriOffset: number): Date {
   let start = currentMonthStart;
   const direction = monthOffset >= 0 ? 1 : -1;
   for (let index = 0; index < Math.abs(monthOffset); index += 1) {
-    start = findMonthStart(addDays(start, direction > 0 ? 32 : -1));
+    start = findMonthStart(addDays(start, direction > 0 ? 32 : -1), hijriOffset);
   }
   return start;
 }
 
-function getMonthDays(monthStart: Date): Date[] {
+function getMonthDays(monthStart: Date, hijriOffset: number): Date[] {
   const dates: Date[] = [];
   for (let offset = 0; offset < 31; offset += 1) {
     const date = addDays(monthStart, offset);
-    if (gregorianToHijri(date).day === 1 && offset > 0) break;
+    if (gregorianToHijri(addDays(date, hijriOffset)).day === 1 && offset > 0) break;
     dates.push(date);
   }
   return dates;
@@ -50,18 +51,19 @@ function getMonthDays(monthStart: Date): Date[] {
 export default function HijriCalendarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { hijriOffset } = useSalatak();
   const today = useMemo(() => dateAtLocalNoon(new Date()), []);
-  const todayHijri = useMemo(() => gregorianToHijri(today), [today]);
-  const currentMonthStart = useMemo(() => findMonthStart(today), [today]);
+  const todayHijri = useMemo(() => gregorianToHijri(addDays(today, hijriOffset)), [today, hijriOffset]);
+  const currentMonthStart = useMemo(() => findMonthStart(today, hijriOffset), [today, hijriOffset]);
   const [monthOffset, setMonthOffset] = useState(0);
-  const monthStart = useMemo(() => findHijriMonthStart(currentMonthStart, monthOffset), [currentMonthStart, monthOffset]);
-  const monthDays = useMemo(() => getMonthDays(monthStart), [monthStart]);
-  const month = gregorianToHijri(monthStart);
+  const monthStart = useMemo(() => findHijriMonthStart(currentMonthStart, monthOffset, hijriOffset), [currentMonthStart, monthOffset, hijriOffset]);
+  const monthDays = useMemo(() => getMonthDays(monthStart, hijriOffset), [monthStart, hijriOffset]);
+  const month = gregorianToHijri(addDays(monthStart, hijriOffset));
   const leadingEmptyDays = monthStart.getDay();
   const cells = [...Array(leadingEmptyDays).fill(null), ...monthDays];
 
   const isToday = (date: Date) => date.getTime() === today.getTime();
-  const dayLabel = (date: Date) => toArabicIndicDigits(gregorianToHijri(date).day);
+  const dayLabel = (date: Date) => toArabicIndicDigits(gregorianToHijri(addDays(date, hijriOffset)).day);
   const occasion = occasionFor(todayHijri.month, todayHijri.day);
 
   return (

@@ -159,6 +159,9 @@ function plainArabic(word: string): string {
     .replace(/[ٱأإآ]/g, 'ا')
     .replace(/[یى]/g, 'ي');
 }
+function normalizeArabicForSearch(word: string): string {
+  return plainArabic(word).replace(/[اٱأإآءؤئ]/g, '');
+}
 const READER_VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 60 };
 function prepareReader(n: number, raw: string[]): { bismillah: boolean; verses: string[] } {
   if (n === 1 || raw === PLACEHOLDER_READER_VERSES || raw.length === 0) {
@@ -203,15 +206,23 @@ export default function QuranScreen() {
 
     return items.map((surah) => ({
       ...surah,
-      searchText: plainArabic(`${surah.name} ${surah.english} ${surah.excerpt} ${surah.readerVerses.join(' ')}`).toLowerCase(),
+      searchText: normalizeArabicForSearch(`${surah.name} ${surah.english} ${surah.excerpt} ${surah.readerVerses.join(' ')}`).toLowerCase(),
     }));
   }, [data]);
   const filtered = useMemo(
-    () => surahs.filter((surah) => {
-      const needle = plainArabic(query.trim()).toLowerCase();
-      if (!needle) return true;
-      return surah.searchText.includes(needle);
-    }),
+    () => {
+      const needle = normalizeArabicForSearch(query.trim()).toLowerCase();
+      return surahs
+        .filter((surah) => !needle || surah.searchText.includes(needle))
+        .map((surah) => ({
+          ...surah,
+          matchingVerses: needle
+            ? surah.readerVerses
+              .map((text, index) => ({ text, index }))
+              .filter(({ text }) => normalizeArabicForSearch(text).toLowerCase().includes(needle))
+            : [],
+        }));
+    },
     [query, surahs],
   );
   const selected = surahs.find((surah) => surah.id === selectedId);
@@ -352,7 +363,13 @@ export default function QuranScreen() {
                   <View style={styles.surahCopy}>
                     <Text style={[styles.surahName, { color: colors.deep }]}>{surah.name}</Text>
                     <Text style={[styles.surahMeta, { color: colors.mutedForeground }]}>{surah.english} · {surah.type} · {surah.verses} آيات</Text>
-                    <Text style={[styles.excerpt, { color: colors.deepMuted }]} numberOfLines={1}>{surah.excerpt}</Text>
+                    {surah.matchingVerses.length > 0
+                      ? surah.matchingVerses.map(({ text, index }) => (
+                        <Text key={`${surah.id}-match-${index}`} style={[styles.matchingVerses, { color: colors.deepMuted }]} numberOfLines={2}>
+                          {index + 1}. {text}
+                        </Text>
+                      ))
+                      : <Text style={[styles.excerpt, { color: colors.deepMuted }]} numberOfLines={1}>{surah.excerpt}</Text>}
                   </View>
                   <Feather name={isBookmarked(surah.id) ? 'bookmark' : 'chevron-left'} size={18} color={isBookmarked(surah.id) ? colors.gold : colors.mutedForeground} />
                 </Pressable>
@@ -390,6 +407,7 @@ const styles = StyleSheet.create({
   surahName: { fontSize: 17, fontWeight: '700', textAlign: 'right' },
   surahMeta: { fontSize: 10, textAlign: 'right', marginTop: 2 },
   excerpt: { fontSize: 12, textAlign: 'right', marginTop: 5 },
+  matchingVerses: { fontSize: 12, textAlign: 'right', marginTop: 5 },
   readerCard: { borderRadius: 22, padding: 17 },
   readerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   readerTitle: { alignItems: 'center' },

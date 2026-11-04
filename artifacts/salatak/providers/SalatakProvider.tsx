@@ -3,6 +3,8 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import type { PrayerId, PrayerMethod } from '@/hooks/usePrayerTimes';
 
 const STORAGE_KEY = '@salatak/state';
+const MIN_NOTIFICATION_LEAD_MINUTES = 0;
+const MAX_NOTIFICATION_LEAD_MINUTES = 60;
 
 export type SalatakState = {
   completedPrayers: Record<string, boolean>;
@@ -86,7 +88,7 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       .then((stored) => {
         if (stored) {
           try {
-            const saved = { ...initialState, ...JSON.parse(stored) } as SalatakState;
+            const saved = sanitizeState({ ...initialState, ...JSON.parse(stored) });
             setState(saved.stateDate === getDayKey(new Date()) ? saved : { ...saved, ...dailyDefaults(), stateDate: getDayKey(new Date()) });
           } catch {
             setState({ ...initialState, stateDate: getDayKey(new Date()) });
@@ -112,8 +114,9 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
   }, [isReady]);
 
   const persist = (next: SalatakState) => {
-    setState(next);
-    void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    const sanitized = sanitizeState(next);
+    setState(sanitized);
+    void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
   };
 
   const value = useMemo<SalatakContextValue>(
@@ -159,7 +162,7 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       setTimeFormat: (timeFormat) => persist({ ...state, timeFormat }),
       setQuranTextSize: (quranTextSize) => persist({ ...state, quranTextSize: Math.max(16, Math.min(32, quranTextSize)) }),
       setPrayerNotification: (prayer, enabled) => persist({ ...state, prayerNotifications: { ...state.prayerNotifications, [prayer]: enabled } }),
-      setNotificationLeadMinutes: (notificationLeadMinutes) => persist({ ...state, notificationLeadMinutes: Math.max(0, Math.min(60, notificationLeadMinutes)) }),
+      setNotificationLeadMinutes: (notificationLeadMinutes) => persist({ ...state, notificationLeadMinutes: normalizeNotificationLeadMinutes(notificationLeadMinutes) }),
       resetSettings: () => persist({ ...state, ...settingsDefaults }),
     }),
     [isReady, state],
@@ -185,6 +188,20 @@ function getDayKey(date: Date): string {
 
 function dailyDefaults(): Pick<SalatakState, 'completedPrayers' | 'rakahCount' | 'readAzkar'> {
   return { completedPrayers: {}, rakahCount: 0, readAzkar: [] };
+}
+
+function normalizeNotificationLeadMinutes(value: number): number {
+  if (!Number.isFinite(value)) return initialState.notificationLeadMinutes;
+  return Math.max(MIN_NOTIFICATION_LEAD_MINUTES, Math.min(MAX_NOTIFICATION_LEAD_MINUTES, Math.trunc(value)));
+}
+
+function sanitizeState(state: SalatakState): SalatakState {
+  return {
+    ...state,
+    hijriOffset: Math.max(-2, Math.min(2, Number.isFinite(state.hijriOffset) ? Math.trunc(state.hijriOffset) : initialState.hijriOffset)),
+    quranTextSize: Math.max(16, Math.min(32, Number.isFinite(state.quranTextSize) ? Math.trunc(state.quranTextSize) : initialState.quranTextSize)),
+    notificationLeadMinutes: normalizeNotificationLeadMinutes(state.notificationLeadMinutes),
+  };
 }
 
 export function useSalatak() {

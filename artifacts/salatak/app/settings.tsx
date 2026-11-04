@@ -49,9 +49,14 @@ export default function SettingsScreen() {
     : [];
   const cities = [...presetCities, ...results];
   const setLead = (value: string) => {
-    setLeadText(value);
     const minutes = Number(value);
-    if (Number.isFinite(minutes)) state.setNotificationLeadMinutes(minutes);
+    if (!Number.isFinite(minutes)) {
+      setLeadText(value);
+      return;
+    }
+    const normalized = Math.max(0, Math.min(60, Math.trunc(minutes)));
+    setLeadText(String(normalized));
+    state.setNotificationLeadMinutes(normalized);
   };
 
   return (
