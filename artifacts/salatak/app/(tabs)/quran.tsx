@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
@@ -264,6 +264,24 @@ export default function QuranScreen() {
     selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null,
   );
   const audioStatus = useAudioPlayerStatus(audioPlayer);
+  useEffect(() => {
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      allowsRecording: false,
+      shouldPlayInBackground: true,
+      interruptionMode: 'doNotMix',
+    }).catch((error) => {
+      console.warn('Quran audio mode setup failed:', error);
+    });
+    if (!selected) return undefined;
+    audioPlayer.setActiveForLockScreen(true, {
+      title: `تلاوة سورة ${selected.name}`,
+      artist: 'صلاتك',
+    });
+    return () => {
+      audioPlayer.setActiveForLockScreen(false);
+    };
+  }, [audioPlayer, selected?.id, selected?.name]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>

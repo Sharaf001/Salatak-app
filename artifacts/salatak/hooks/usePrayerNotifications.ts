@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { requireOptionalNativeModule } from 'expo-modules-core';
+import { requireOptionalNativeModule } from 'expo';
 import { AppState, Platform } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import type { PrayerId, PrayerMethod } from './usePrayerTimes';

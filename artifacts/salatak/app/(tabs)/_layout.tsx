@@ -51,7 +51,7 @@ function ClassicTabLayout() {
       screenOptions={{
       tabBarActiveTintColor: colors.primary,
       tabBarInactiveTintColor: colors.mutedForeground,
-      headerShown: true,
+      headerShown: false,
       tabBarStyle: {
         position: 'absolute',
         left: isWeb ? 0 : 20,
@@ -100,7 +100,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'الرئيسية',
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="house" tintColor={String(color)} size={24} />
@@ -112,21 +112,21 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="quran"
         options={{
-          title: 'Quran',
+          title: 'القرآن',
           tabBarIcon: ({ color }) => <Feather name="book-open" size={21} color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="duas"
         options={{
-          title: 'Duas',
+          title: 'الأدعية',
           tabBarIcon: ({ color }) => <Feather name="heart" size={21} color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
-          title: 'More',
+          title: 'المزيد',
           tabBarIcon: ({ color }) => <Feather name="grid" size={21} color={String(color)} />,
         }}
       />

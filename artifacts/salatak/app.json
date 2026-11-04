@@ -52,7 +52,14 @@
           "locationWhenInUsePermission": "صلاتك يستخدم موقعك لحساب مواقيت الصلاة واتجاه القبلة بدقة."
         }
       ],
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

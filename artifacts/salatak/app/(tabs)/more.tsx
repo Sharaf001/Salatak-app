@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 import { notificationsSupported } from '@/hooks/usePrayerNotifications';
-import { MANUAL_CITIES, PRAYER_METHODS, type ManualCity, type PrayerMethod } from '@/hooks/usePrayerTimes';
+import { formatGeocodedCity, MANUAL_CITIES, PRAYER_METHODS, type ManualCity, type PrayerMethod } from '@/hooks/usePrayerTimes';
 
 function ToolRow({
   icon,
@@ -62,14 +62,20 @@ export default function MoreScreen() {
           if (cancelled) return;
           const results = places
             .filter((place) => Number.isFinite(place.latitude) && Number.isFinite(place.longitude))
-            .map((place, index) => ({
+            .map(async (place, index) => ({
               id: `search-${place.latitude}-${place.longitude}-${index}`,
-              name: query,
-              country: '',
+              ...formatGeocodedCity(
+                await Location.reverseGeocodeAsync({ latitude: place.latitude, longitude: place.longitude })
+                  .then((addresses) => addresses[0] ?? {})
+                  .catch(() => ({})),
+                query,
+              ),
               latitude: place.latitude,
               longitude: place.longitude,
             }));
-          setGeocodedCities(results);
+          Promise.all(results).then((resolved) => {
+            if (!cancelled) setGeocodedCities(resolved);
+          });
         })
         .catch(() => {
           if (!cancelled) setCitySearchError('تعذر العثور على هذا الموقع');

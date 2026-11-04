@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MANUAL_CITIES, PRAYER_METHODS, type ManualCity, type PrayerId } from '@/hooks/usePrayerTimes';
+import { formatGeocodedCity, MANUAL_CITIES, PRAYER_METHODS, type ManualCity, type PrayerId } from '@/hooks/usePrayerTimes';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 
@@ -27,13 +27,19 @@ export default function SettingsScreen() {
     const timer = setTimeout(() => {
       Location.geocodeAsync(query).then((places) => {
         if (cancelled) return;
-        setResults(places.map((place, index) => ({
+        Promise.all(places.map(async (place, index) => ({
           id: `settings-${place.latitude}-${place.longitude}-${index}`,
-          name: query,
-          country: '',
+          ...formatGeocodedCity(
+            await Location.reverseGeocodeAsync({ latitude: place.latitude, longitude: place.longitude })
+              .then((addresses) => addresses[0] ?? {})
+              .catch(() => ({})),
+            query,
+          ),
           latitude: place.latitude,
           longitude: place.longitude,
-        })));
+        }))).then((resolved) => {
+          if (!cancelled) setResults(resolved);
+        });
       }).catch(() => {
         if (!cancelled) setResults([]);
       });

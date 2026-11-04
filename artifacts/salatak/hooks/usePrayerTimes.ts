@@ -45,6 +45,18 @@ export type ManualCity = {
   longitude: number;
 };
 
+export function formatGeocodedCity(
+  place: Partial<Pick<Location.LocationGeocodedAddress, 'city' | 'district' | 'subregion' | 'region' | 'country'>>,
+  fallback: string,
+): Pick<ManualCity, 'name' | 'country'> {
+  const city = place.city ?? place.district ?? place.subregion ?? place.region ?? fallback;
+  const region = place.region && place.region !== city ? place.region : '';
+  return {
+    name: region ? `${city}، ${region}` : city,
+    country: place.country ?? '',
+  };
+}
+
 export const MANUAL_CITIES: ManualCity[] = [
   { id: 'beirut', name: 'بيروت', country: 'لبنان', latitude: 33.8938, longitude: 35.5018 },
   { id: 'najaf', name: 'النجف', country: 'العراق', latitude: 32.0003, longitude: 44.3354 },
