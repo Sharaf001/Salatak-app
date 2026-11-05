@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { I18nManager } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -23,6 +24,11 @@ SplashScreen.preventAutoHideAsync();
 
 initApiClient();
 I18nManager.allowRTL(true);
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: Boolean(process.env.EXPO_PUBLIC_SENTRY_DSN),
+  tracesSampleRate: 0.1,
+});
 
 const queryClient = new QueryClient();
 
@@ -36,7 +42,7 @@ function RootLayoutNav() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -69,3 +75,5 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

@@ -17,6 +17,14 @@ uses and how it is handled.
   notification permission to schedule reminders on your device.
 - **Photos and media:** If you choose to save a wallpaper, the app requests
   permission to save that selected image to your device's photo library.
+- **Audio streaming:** When you play Quran or dua audio, the selected audio
+  file is streamed from its third-party host. The app does not upload
+  recordings or microphone data; recording permission is disabled.
+- **Optional API requests:** If a hosted API is configured, the app may request
+  remote religious content. The app does not require an account for local use.
+- **Optional crash diagnostics:** If Sentry is configured for a production
+  build, it receives crash reports and limited technical diagnostics needed to
+  investigate failures. Sentry is disabled when no DSN is configured.
 - **Local app data:** Bookmarks, the rak'ah counter, and notification
   preferences are stored locally on your device. This data is not uploaded to
   Salatak servers.

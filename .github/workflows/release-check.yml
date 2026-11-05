@@ -1,0 +1,49 @@
+name: Salatak release checks
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_preview:
+        description: Build the EAS preview after the release gates
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @workspace/salatak typecheck
+      - run: pnpm --filter @workspace/salatak test
+      - run: pnpm --filter @workspace/salatak exec npx expo-doctor
+      - run: pnpm --filter @workspace/salatak exec expo install --check
+
+  preview-build:
+    if: ${{ secrets.EXPO_TOKEN != '' && (github.event_name == 'push' || inputs.build_preview == true) }}
+    needs: release-gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dlx eas-cli build --profile preview --platform all --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
