@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
@@ -263,10 +263,16 @@ export default function QuranScreen() {
     : { bismillah: false, verses: [] as string[] };
   const audioPlayer = useAudioPlayer(
     selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null,
+    { downloadFirst: true, preferredForwardBufferDuration: 30 },
   );
   const audioStatus = useAudioPlayerStatus(audioPlayer);
-  const playRecitation = () => {
-    audioPlayer.play();
+  const playRecitation = async () => {
+    try {
+      await setIsAudioActiveAsync(true);
+      audioPlayer.play();
+    } catch (error) {
+      console.warn('Quran audio playback failed:', error);
+    }
   };
   useEffect(() => {
     setAudioModeAsync({
@@ -296,7 +302,7 @@ export default function QuranScreen() {
                   <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
                   <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : 'تشغيل تلاوة السورة'} onPress={() => audioStatus.playing ? audioPlayer.pause() : playRecitation()} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : 'تشغيل تلاوة السورة'} onPress={() => { if (audioStatus.playing) audioPlayer.pause(); else void playRecitation(); }} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
                 <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
               </View>
               {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}

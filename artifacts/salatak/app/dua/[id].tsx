@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -21,9 +21,17 @@ export default function DuaReaderScreen() {
   const audio = DUA_AUDIO[id ?? ''];
   const audioPlayer = useAudioPlayer(
     audio ? { uri: audio.url, name: `${title} - ${audio.reciter}` } : null,
-    { preferredForwardBufferDuration: 30 },
+    { downloadFirst: true, preferredForwardBufferDuration: 30 },
   );
   const audioStatus = useAudioPlayerStatus(audioPlayer);
+  const playAudio = async () => {
+    try {
+      await setIsAudioActiveAsync(true);
+      audioPlayer.play();
+    } catch (error) {
+      console.warn('Dua audio playback failed:', error);
+    }
+  };
 
   useEffect(() => {
     audioPlayer.volume = 1;
@@ -57,7 +65,13 @@ export default function DuaReaderScreen() {
             accessibilityRole="button"
             accessibilityLabel={audioStatus.playing ? 'إيقاف صوت الدعاء' : 'تشغيل صوت الدعاء'}
             disabled={!audio}
-            onPress={() => audioStatus.playing ? audioPlayer.pause() : audioPlayer.play()}
+            onPress={() => {
+              if (audioStatus.playing) {
+                audioPlayer.pause();
+              } else {
+                void playAudio();
+              }
+            }}
             style={[styles.audioButton, { backgroundColor: audio ? colors.primary : colors.border }]}
           >
             <Feather name={audioStatus.playing ? 'pause' : 'play'} size={16} color={colors.primaryForeground} />
