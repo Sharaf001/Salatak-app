@@ -6,7 +6,6 @@ import { BlurView } from 'expo-blur';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // IMPORTANT: iOS 26 uses NativeTabs for native tabs with liquid glass support.
@@ -42,7 +41,6 @@ function ClassicTabLayout() {
   const colors = useColors();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
   const insets = useSafeAreaInsets();
 
@@ -101,12 +99,7 @@ function ClassicTabLayout() {
         name="index"
         options={{
           title: 'الرئيسية',
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="house" tintColor={String(color)} size={24} />
-            ) : (
-              <Feather name="home" size={22} color={String(color)} />
-            ),
+          tabBarIcon: ({ color }) => <Feather name="home" size={22} color={String(color)} />,
         }}
       />
       <Tabs.Screen

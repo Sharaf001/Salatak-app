@@ -22,6 +22,13 @@ Verify prayer notifications, location permission, Quran/dua streaming,
 background playback, city search, Hijri offset, settings validation, and
 wallpaper saving.
 
+## Tab bar validation
+
+- [ ] Verify the classic Android tab bar blur on a low-end Android phone.
+- [ ] Verify iOS 26 uses native tabs with Liquid Glass on an iOS 26 device.
+- [ ] Verify older iOS and Android use the classic tab layout and consistent
+  Feather icons.
+
 ## Store disclosures
 
 - [ ] Apple privacy labels include location, notifications, photo-library
