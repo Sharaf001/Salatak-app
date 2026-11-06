@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: expo*
+      - dependency-name: '@expo/*'
+      - dependency-name: react-native*
     groups:
       javascript-minor-patch:
         update-types:

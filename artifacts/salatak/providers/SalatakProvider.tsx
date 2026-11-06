@@ -5,6 +5,7 @@ import type { PrayerId, PrayerMethod } from '@/hooks/usePrayerTimes';
 const STORAGE_KEY = '@salatak/state';
 const MIN_NOTIFICATION_LEAD_MINUTES = 0;
 const MAX_NOTIFICATION_LEAD_MINUTES = 60;
+const PRAYER_IDS: PrayerId[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
 export type SalatakState = {
   completedPrayers: Record<string, boolean>;
@@ -88,7 +89,7 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       .then((stored) => {
         if (stored) {
           try {
-            const saved = sanitizeState({ ...initialState, ...JSON.parse(stored) });
+            const saved = sanitizeState(JSON.parse(stored));
             setState(saved.stateDate === getDayKey(new Date()) ? saved : { ...saved, ...dailyDefaults(), stateDate: getDayKey(new Date()) });
           } catch {
             setState({ ...initialState, stateDate: getDayKey(new Date()) });
@@ -195,13 +196,102 @@ function normalizeNotificationLeadMinutes(value: number): number {
   return Math.max(MIN_NOTIFICATION_LEAD_MINUTES, Math.min(MAX_NOTIFICATION_LEAD_MINUTES, Math.trunc(value)));
 }
 
-function sanitizeState(state: SalatakState): SalatakState {
+function sanitizeState(value: unknown): SalatakState {
+  const saved = isRecord(value) ? value : {};
+  const selectedCity = isRecord(saved.selectedCity)
+    && typeof saved.selectedCity.id === 'string'
+    && typeof saved.selectedCity.name === 'string'
+    && typeof saved.selectedCity.country === 'string'
+    && isFiniteNumber(saved.selectedCity.latitude)
+    && isFiniteNumber(saved.selectedCity.longitude)
+    ? {
+        id: saved.selectedCity.id,
+        name: saved.selectedCity.name,
+        country: saved.selectedCity.country,
+        latitude: saved.selectedCity.latitude,
+        longitude: saved.selectedCity.longitude,
+      }
+    : initialState.selectedCity;
+
   return {
-    ...state,
-    hijriOffset: Math.max(-2, Math.min(2, Number.isFinite(state.hijriOffset) ? Math.trunc(state.hijriOffset) : initialState.hijriOffset)),
-    quranTextSize: Math.max(16, Math.min(32, Number.isFinite(state.quranTextSize) ? Math.trunc(state.quranTextSize) : initialState.quranTextSize)),
-    notificationLeadMinutes: normalizeNotificationLeadMinutes(state.notificationLeadMinutes),
+    completedPrayers: booleanRecord(saved.completedPrayers),
+    bookmarks: stringArray(saved.bookmarks),
+    rakahCount: nonNegativeInteger(saved.rakahCount, initialState.rakahCount),
+    tasbihCount: nonNegativeInteger(saved.tasbihCount, initialState.tasbihCount),
+    tasbihTarget: positiveInteger(saved.tasbihTarget, initialState.tasbihTarget),
+    readAzkar: stringArray(saved.readAzkar),
+    notificationsEnabled: booleanValue(saved.notificationsEnabled, initialState.notificationsEnabled),
+    stateDate: typeof saved.stateDate === 'string' ? saved.stateDate : initialState.stateDate,
+    selectedCity,
+    lastReadSurah: typeof saved.lastReadSurah === 'string' ? saved.lastReadSurah : null,
+    lastReadVerse: nonNegativeInteger(saved.lastReadVerse, initialState.lastReadVerse),
+    prayerMethod: saved.prayerMethod === 'qom' ? 'qom' : initialState.prayerMethod,
+    asrMadhab: saved.asrMadhab === 'hanafi' ? 'hanafi' : initialState.asrMadhab,
+    prayerOffsets: prayerNumberRecord(saved.prayerOffsets, initialState.prayerOffsets),
+    hijriOffset: boundedInteger(saved.hijriOffset, -2, 2, initialState.hijriOffset),
+    timeFormat: saved.timeFormat === '12h' ? '12h' : '24h',
+    quranTextSize: boundedInteger(saved.quranTextSize, 16, 32, initialState.quranTextSize),
+    prayerNotifications: booleanRecordWithDefaults(saved.prayerNotifications, initialState.prayerNotifications),
+    notificationLeadMinutes: normalizeNotificationLeadMinutes(numberValue(saved.notificationLeadMinutes, initialState.notificationLeadMinutes)),
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function numberValue(value: unknown, fallback: number): number {
+  return isFiniteNumber(value) ? value : fallback;
+}
+
+function boundedInteger(value: unknown, min: number, max: number, fallback: number): number {
+  return Math.max(min, Math.min(max, Math.trunc(numberValue(value, fallback))));
+}
+
+function nonNegativeInteger(value: unknown, fallback: number): number {
+  return Math.max(0, Math.trunc(numberValue(value, fallback)));
+}
+
+function positiveInteger(value: unknown, fallback: number): number {
+  return Math.max(1, Math.trunc(numberValue(value, fallback)));
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function booleanValue(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
+function booleanRecord(value: unknown): Record<string, boolean> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean'),
+  );
+}
+
+function booleanRecordWithDefaults(value: unknown, defaults: Record<PrayerId, boolean>): Record<PrayerId, boolean> {
+  const saved = booleanRecord(value);
+  return PRAYER_IDS.reduce(
+    (result, prayer) => ({ ...result, [prayer]: saved[prayer] ?? defaults[prayer] }),
+    {} as Record<PrayerId, boolean>,
+  );
+}
+
+function prayerNumberRecord(value: unknown, defaults: Record<PrayerId, number>): Record<PrayerId, number> {
+  const saved = isRecord(value) ? value : {};
+  return PRAYER_IDS.reduce(
+    (result, prayer) => ({
+      ...result,
+      [prayer]: boundedInteger(saved[prayer], -30, 30, defaults[prayer]),
+    }),
+    {} as Record<PrayerId, number>,
+  );
 }
 
 export function useSalatak() {

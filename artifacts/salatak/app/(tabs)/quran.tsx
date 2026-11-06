@@ -207,6 +207,7 @@ export default function QuranScreen() {
     return items.map((surah) => ({
       ...surah,
       searchText: normalizeArabicForSearch(`${surah.name} ${surah.english} ${surah.excerpt} ${surah.readerVerses.join(' ')}`).toLowerCase(),
+      normalizedVerses: surah.readerVerses.map((text) => normalizeArabicForSearch(text).toLowerCase()),
     }));
   }, [data]);
   const filtered = useMemo(
@@ -218,8 +219,8 @@ export default function QuranScreen() {
           ...surah,
           matchingVerses: needle
             ? surah.readerVerses
-              .map((text, index) => ({ text, index }))
-              .filter(({ text }) => normalizeArabicForSearch(text).toLowerCase().includes(needle))
+              .map((text, index) => ({ text, index, normalizedText: surah.normalizedVerses[index] }))
+              .filter(({ normalizedText }) => normalizedText.includes(needle))
             : [],
         }));
     },

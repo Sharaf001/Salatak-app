@@ -8,12 +8,17 @@
 - Store EAS credentials in the EAS/CI secret store and back up the recovery
   information securely.
 - Set `EXPO_PUBLIC_SENTRY_DSN` only through local or EAS environment secrets.
+- Set `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` in the EAS build
+  environment so Sentry can upload source maps and produce readable stack
+  traces. Keep the auth token secret.
 - Set the GitHub `EXPO_TOKEN` secret to enable the preview-build job.
 - Set the GitHub `API_HEALTH_URL` secret to enable the scheduled uptime check.
 
 ## Release cadence
 
 - Upgrade one Expo SDK major version at a time.
+- After selecting the target SDK, run `npx expo install --fix` in
+  `artifacts/salatak` so Expo packages and React Native remain in lockstep.
 - For each release, run the automated gates in CI and complete
   [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
 - Test the preview build on every listed OS/device/language/dark-mode
@@ -21,8 +26,9 @@
 
 ## Monitoring and recovery
 
-- Configure Sentry with a project DSN before production release and verify a
-  test crash reaches the intended project without collecting unnecessary
+- Configure Sentry with a project DSN, organization, and project before
+  production release. Verify a test crash reaches the intended project and
+  source maps produce readable stack traces without collecting unnecessary
   personal data.
 - Configure the API health endpoint and alerting owner for the uptime workflow.
 - Enable Neon automated backups and periodically perform a restore test.

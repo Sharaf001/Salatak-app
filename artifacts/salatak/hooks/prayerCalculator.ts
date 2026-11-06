@@ -23,7 +23,7 @@ export function computePrayerTimes(
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowPt = new PrayerTimes(coordinates, tomorrow, params);
   const midnight = new Date((pt.sunset.getTime() + tomorrowPt.fajr.getTime()) / 2);
-  const imsak = new Date(pt.fajr.getTime() - 10 * 60 * 1000);
+  const imsak = new Date(pt.fajr.getTime() + ((offsets.fajr ?? 0) - 10) * 60 * 1000);
   return {
     fajr: new Date(pt.fajr.getTime() + (offsets.fajr ?? 0) * 60_000),
     imsak,

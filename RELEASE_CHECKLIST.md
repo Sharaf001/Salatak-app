@@ -25,9 +25,13 @@ wallpaper saving.
 ## Store disclosures
 
 - [ ] Apple privacy labels include location, notifications, photo-library
-  saving, third-party audio streaming, and optional API requests as applicable.
-- [ ] Google Play Data Safety answers match the same behavior.
+  saving, third-party audio streaming, crash diagnostics, and optional API
+  requests as applicable.
+- [ ] Google Play Data Safety answers include crash diagnostics and match the
+  same behavior.
 - [ ] Recheck `PRIVACY.md` and `SOURCES.md`.
+- [ ] Obtain written redistribution permission for the dua recordings or
+  replace them with licensed audio before release.
 - [ ] Confirm Neon password rotation, automated backups, and a recent restore
   test.
 - [ ] Confirm Sentry, API uptime alerts, and EAS credential backups are active.

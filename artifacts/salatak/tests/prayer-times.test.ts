@@ -27,6 +27,15 @@ test('computePrayerTimes applies prayer offsets without changing other prayers',
   assert.equal(adjusted.dhuhr.getTime(), baseline.dhuhr.getTime());
 });
 
+test('computePrayerTimes applies the Fajr offset to Imsak', () => {
+  const coordinates = new Coordinates(35.6892, 51.389);
+  const date = new Date('2026-11-02T00:00:00Z');
+  const baseline = computePrayerTimes(coordinates, date);
+  const adjusted = computePrayerTimes(coordinates, date, 'tehran', 'shafi', { fajr: 5 });
+
+  assert.equal(adjusted.imsak.getTime() - baseline.imsak.getTime(), 5 * 60_000);
+});
+
 test('computePrayerTimes supports both Asr madhabs', () => {
   const coordinates = new Coordinates(35.6892, 51.389);
   const date = new Date('2026-11-02T00:00:00Z');
