@@ -261,31 +261,29 @@ export default function QuranScreen() {
   const reader = selected
     ? prepareReader(Number(selected.id.replace('surah-', '')), selected.readerVerses)
     : { bismillah: false, verses: [] as string[] };
-  const audioPlayer = useAudioPlayer(
-    selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null,
-    { downloadFirst: true, preferredForwardBufferDuration: 30 },
+  const audioSource = useMemo(
+    () => (selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null),
+    [selected?.id],
   );
+  const audioPlayer = useAudioPlayer(audioSource, {
+    downloadFirst: true,
+    preferredForwardBufferDuration: 30,
+  });
   const audioStatus = useAudioPlayerStatus(audioPlayer);
   const playRecitation = async () => {
     try {
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        allowsRecording: false,
+        shouldPlayInBackground: true,
+        interruptionMode: 'doNotMix',
+      });
       await setIsAudioActiveAsync(true);
       audioPlayer.play();
     } catch (error) {
       console.warn('Quran audio playback failed:', error);
     }
   };
-  useEffect(() => {
-    setAudioModeAsync({
-      playsInSilentMode: true,
-      allowsRecording: false,
-      shouldPlayInBackground: true,
-      interruptionMode: 'doNotMix',
-    }).catch((error) => {
-      console.warn('Quran audio mode setup failed:', error);
-    });
-    return undefined;
-  }, [audioPlayer, selected?.id, selected?.name]);
-
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       {selected ? (

@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDuas } from '@workspace/api-client-react';
@@ -19,13 +19,23 @@ export default function DuaReaderScreen() {
   const title = remote?.title ?? fallback?.title ?? 'الدعاء';
   const body = remote?.body && remote.body.length > 200 ? remote.body : fallback?.body ?? remote?.body ?? '';
   const audio = DUA_AUDIO[id ?? ''];
-  const audioPlayer = useAudioPlayer(
-    audio ? { uri: audio.url, name: `${title} - ${audio.reciter}` } : null,
-    { downloadFirst: true, preferredForwardBufferDuration: 30 },
+  const audioSource = useMemo(
+    () => (audio ? { uri: audio.url, name: `${title} - ${audio.reciter}` } : null),
+    [audio, title],
   );
+  const audioPlayer = useAudioPlayer(audioSource, {
+    downloadFirst: true,
+    preferredForwardBufferDuration: 30,
+  });
   const audioStatus = useAudioPlayerStatus(audioPlayer);
   const playAudio = async () => {
     try {
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        allowsRecording: false,
+        shouldPlayInBackground: true,
+        interruptionMode: 'doNotMix',
+      });
       await setIsAudioActiveAsync(true);
       audioPlayer.play();
     } catch (error) {
@@ -35,14 +45,6 @@ export default function DuaReaderScreen() {
 
   useEffect(() => {
     audioPlayer.volume = 1;
-    setAudioModeAsync({
-      playsInSilentMode: true,
-      allowsRecording: false,
-      shouldPlayInBackground: true,
-      interruptionMode: 'doNotMix',
-    }).catch((error) => {
-      console.warn('Dua audio mode setup failed:', error);
-    });
   }, [audioPlayer]);
 
   return (
