@@ -18,32 +18,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @workspace/salatak typecheck
+      - run: pnpm run typecheck
       - run: pnpm --filter @workspace/salatak test
       - run: pnpm --filter @workspace/salatak exec npx expo-doctor
       - run: pnpm --filter @workspace/salatak exec expo install --check
 
   preview-build:
-    if: ${{ secrets.EXPO_TOKEN != '' && (github.event_name == 'push' || inputs.build_preview == true) }}
+    if: ${{ github.event_name == 'push' || inputs.build_preview == true }}
     needs: release-gates
     runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm dlx eas-cli build --profile preview --platform all --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - if: ${{ env.EXPO_TOKEN != '' }}
+        run: pnpm dlx eas-cli build --profile preview --platform all --non-interactive

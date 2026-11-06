@@ -8,12 +8,12 @@ on:
 jobs:
   check-api:
     runs-on: ubuntu-latest
+    env:
+      API_HEALTH_URL: ${{ secrets.API_HEALTH_URL }}
     steps:
       - name: Check configured API health endpoint
-        if: ${{ secrets.API_HEALTH_URL != '' }}
+        if: ${{ env.API_HEALTH_URL != '' }}
         run: curl --fail --silent --show-error --max-time 20 "$API_HEALTH_URL"
-        env:
-          API_HEALTH_URL: ${{ secrets.API_HEALTH_URL }}
       - name: Explain missing endpoint configuration
-        if: ${{ secrets.API_HEALTH_URL == '' }}
+        if: ${{ env.API_HEALTH_URL == '' }}
         run: echo "Set the API_HEALTH_URL repository secret to enable uptime checks."
