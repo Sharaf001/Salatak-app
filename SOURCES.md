@@ -15,10 +15,11 @@ adding or replacing an asset.
 
 ## Audio
 
-- Dua audio is currently disabled. Obtain written redistribution permission
-  for the intended Abather Al-Halwaji recordings or replace them with
-  licensed recordings before restoring entries in
-  `artifacts/salatak/data/dua-audio.ts`.
+- Abather Al-Halwaji dua recordings: Internet Archive collection
+  [duas-abather-al-halwachi](https://archive.org/details/duas-abather-al-halwachi);
+  exact file URLs and reciter attribution are in
+  `artifacts/salatak/data/dua-audio.ts`. Verify redistribution permission
+  before release.
 - Quran audio: Islamic Network/Al Quran Cloud URLs are defined in
   `artifacts/salatak/app/(tabs)/quran.tsx`; confirm current redistribution
   terms before each store release.
