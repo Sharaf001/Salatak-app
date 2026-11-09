@@ -24,6 +24,17 @@
 - Test the preview build on every listed OS/device/language/dark-mode
   combination before submission.
 
+## Ongoing maintenance
+
+- Monthly, run the workspace typecheck and app tests, then run `expo-doctor`
+  and `expo install --check` from `artifacts/salatak`. Review dependency and
+  security updates.
+- Before Ramadan and Muharram, review
+  `artifacts/salatak/data/islamic-occasions.ts` and the configured prayer
+  methods.
+- Yearly, rotate deployment secrets, change the Neon password if it has not
+  been rotated, and re-check Apple and Google store requirements.
+
 ## Monitoring and recovery
 
 - Configure Sentry with a project DSN, organization, and project before

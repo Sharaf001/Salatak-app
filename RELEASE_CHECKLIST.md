@@ -18,6 +18,8 @@ Install the preview build and test in light and dark mode on:
 - [ ] Arabic-language phone
 - [ ] English-language phone
 
+The device matrix must be repeated for each release, including dark mode.
+
 Verify prayer notifications, location permission, Quran/dua streaming,
 background playback, city search, Hijri offset, settings validation, and
 wallpaper saving.
