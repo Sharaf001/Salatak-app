@@ -189,7 +189,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <SectionTitle title="مواقيت الصلاة" action={`${completedCount}/5 مكتملة`} />
+        <SectionTitle title="مواقيت الصلاة" action={completedCount === 5 ? 'تمت جميع الصلوات' : `${completedCount}/5 مكتملة`} />
         <View style={[styles.prayerList, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {today ? (
             <View style={[styles.astronomicalRow, { backgroundColor: colors.card, borderColor: colors.border }]}>

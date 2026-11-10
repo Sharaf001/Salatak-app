@@ -129,10 +129,9 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
           ...state.completedPrayers,
           [prayerId]: !state.completedPrayers[prayerId],
         };
-        const completedAllPrayers = PRAYER_IDS.every((prayer) => completedPrayers[prayer]);
         persist({
           ...state,
-          completedPrayers: completedAllPrayers ? {} : completedPrayers,
+          completedPrayers,
         });
       },
       toggleBookmark: (itemId) => {

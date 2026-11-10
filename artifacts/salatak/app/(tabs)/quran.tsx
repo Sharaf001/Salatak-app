@@ -265,12 +265,18 @@ export default function QuranScreen() {
     () => (selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null),
     [selected?.id],
   );
+  const [audioRequested, setAudioRequested] = useState(false);
   const audioPlayer = useAudioPlayer(audioSource, {
-    downloadFirst: true,
+    downloadFirst: false,
     preferredForwardBufferDuration: 30,
   });
   const audioStatus = useAudioPlayerStatus(audioPlayer);
+  const audioLoading = audioRequested && !audioStatus.playing && (audioStatus.isBuffering || !audioStatus.isLoaded);
+  useEffect(() => {
+    setAudioRequested(false);
+  }, [selected?.id]);
   const playRecitation = async () => {
+    setAudioRequested(true);
     try {
       await setAudioModeAsync({
         playsInSilentMode: true,
@@ -281,6 +287,7 @@ export default function QuranScreen() {
       await setIsAudioActiveAsync(true);
       audioPlayer.play();
     } catch (error) {
+      setAudioRequested(false);
       console.warn('Quran audio playback failed:', error);
     }
   };
@@ -300,10 +307,13 @@ export default function QuranScreen() {
                   <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
                   <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : 'تشغيل تلاوة السورة'} onPress={() => { if (audioStatus.playing) audioPlayer.pause(); else void playRecitation(); }} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : audioLoading ? 'جارٍ تحميل التلاوة' : 'تشغيل تلاوة السورة'} onPress={() => { if (audioStatus.playing) audioPlayer.pause(); else void playRecitation(); }} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : audioLoading ? 'loader' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
                 <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
               </View>
               {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
+              <Text style={[styles.audioNote, { color: colors.deepMuted }]}>
+                {audioLoading ? 'جارٍ تحميل التلاوة...' : audioStatus.error ?? 'تنبيه: قد يستهلك تشغيل التلاوة بيانات الهاتف عند استخدام شبكة الجوال.'}
+              </Text>
             </View>
           }
           onViewableItemsChanged={onViewableItemsChanged}
@@ -432,6 +442,7 @@ const styles = StyleSheet.create({
   readerTitle: { alignItems: 'center' },
   readerSurah: { fontSize: 23, fontWeight: '700', fontFamily: 'Amiri_400Regular' },
   readerMeta: { fontSize: 11, marginTop: 3 },
+  audioNote: { fontSize: 11, textAlign: 'right', marginTop: 10 },
   verseList: { marginTop: 22 },
   bismillah: { fontSize: 25, lineHeight: 44, textAlign: 'center', paddingVertical: 14, fontFamily: 'Amiri_400Regular' },
   verseRow: { flexDirection: 'row-reverse', alignItems: 'flex-start', paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth },
