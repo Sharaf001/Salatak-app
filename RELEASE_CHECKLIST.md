@@ -10,15 +10,17 @@
 
 ## Device matrix
 
-Install the preview build and test in light and dark mode on:
+Install the preview build on real physical devices and test in light and dark
+mode on:
 
 - [ ] iOS 26 device
 - [ ] Older supported iPhone
-- [ ] Low-end Android
+- [ ] Low-end Android phone (keep this device for the blur/performance check)
 - [ ] Arabic-language phone
 - [ ] English-language phone
 
-The device matrix must be repeated for each release, including dark mode.
+Do not substitute simulators or emulators for the release device pass. The
+device matrix must be repeated for each release, including dark mode.
 
 Verify prayer notifications, location permission, Quran/dua streaming,
 background playback, city search, Hijri offset, settings validation, and
@@ -30,6 +32,19 @@ wallpaper saving.
 - [ ] Verify iOS 26 uses native tabs with Liquid Glass on an iOS 26 device.
 - [ ] Verify older iOS and Android use the classic tab layout and consistent
   Feather icons.
+
+## Accessibility validation
+
+Run a screen-reader pass on real devices with large text sizes enabled:
+
+- [ ] VoiceOver on an iOS device
+- [ ] TalkBack on an Android device
+- [ ] Large text/dynamic type on iOS, including the largest practical size
+- [ ] Largest supported font/display size on Android
+- [ ] Verify every primary action has a meaningful spoken label and focus
+  order, including prayer ticks, audio controls, tabs, settings, and links.
+- [ ] Verify text remains readable, controls remain reachable, and no content
+  is clipped or hidden at large sizes.
 
 ## Store disclosures
 
