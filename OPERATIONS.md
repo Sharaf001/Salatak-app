@@ -16,6 +16,18 @@
 - Set the GitHub `EXPO_TOKEN` secret to enable the preview-build job.
 - Set the GitHub `API_HEALTH_URL` secret to enable the scheduled uptime check.
 
+## Release verification
+
+- Before a production build, confirm the EAS environment contains the Sentry
+  DSN, organization, project, and auth token. Verify the build logs report a
+  successful source-map upload.
+- Trigger a deliberate test exception in a non-production build and confirm
+  the event arrives in the configured Sentry project with readable source
+  locations. Do not trigger this against production users.
+- Run one Neon backup/restore drill against an isolated restore target. Verify
+  the restored database can connect and passes the app's schema checks, then
+  rotate the Neon password and update the deployment secret.
+
 ## Release cadence
 
 - Upgrade one Expo SDK major version at a time.

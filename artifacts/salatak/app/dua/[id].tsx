@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import Constants from 'expo-constants';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDuas } from '@workspace/api-client-react';
@@ -27,11 +27,17 @@ export default function DuaReaderScreen() {
     [audio, title],
   );
   const audioPlayer = useAudioPlayer(audioSource, {
-    downloadFirst: true,
+    downloadFirst: false,
     preferredForwardBufferDuration: 30,
   });
   const audioStatus = useAudioPlayerStatus(audioPlayer);
+  const [audioRequested, setAudioRequested] = useState(false);
+  const audioLoading = audioRequested && !audioStatus.playing && (audioStatus.isBuffering || !audioStatus.isLoaded);
+  useEffect(() => {
+    setAudioRequested(false);
+  }, [id]);
   const playAudio = async () => {
+    setAudioRequested(true);
     try {
       await setAudioModeAsync({
         playsInSilentMode: true,
@@ -42,6 +48,7 @@ export default function DuaReaderScreen() {
       await setIsAudioActiveAsync(true);
       audioPlayer.play();
     } catch (error) {
+      setAudioRequested(false);
       console.warn('Dua audio playback failed:', error);
     }
   };
@@ -68,7 +75,7 @@ export default function DuaReaderScreen() {
         <View style={[styles.audioCard, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={audioStatus.playing ? 'إيقاف صوت الدعاء' : 'تشغيل صوت الدعاء'}
+            accessibilityLabel={audioStatus.playing ? 'إيقاف صوت الدعاء' : audioLoading ? 'جارٍ تحميل صوت الدعاء' : 'تشغيل صوت الدعاء'}
             disabled={!audio}
             onPress={() => {
               if (audioStatus.playing) {
@@ -79,11 +86,11 @@ export default function DuaReaderScreen() {
             }}
             style={[styles.audioButton, { backgroundColor: audio ? colors.primary : colors.border }]}
           >
-            <Feather name={audioStatus.playing ? 'pause' : 'play'} size={16} color={colors.primaryForeground} />
-            <Text style={[styles.audioButtonText, { color: colors.primaryForeground }]}>{audioStatus.playing ? 'إيقاف الصوت' : 'تشغيل الصوت'}</Text>
+            <Feather name={audioStatus.playing ? 'pause' : audioLoading ? 'loader' : 'play'} size={16} color={colors.primaryForeground} />
+            <Text style={[styles.audioButtonText, { color: colors.primaryForeground }]}>{audioStatus.playing ? 'إيقاف الصوت' : audioLoading ? 'جارٍ التحميل...' : 'تشغيل الصوت'}</Text>
           </Pressable>
           <Text style={[styles.audioNote, { color: colors.deepMuted }]}>
-            {audioStatus.error ?? (audio ? `بصوت ${audio.reciter}` : 'الصوت غير متاح حالياً حتى يتم التحقق من إذن استخدام التسجيلات')}
+            {audioLoading ? 'جارٍ تحميل الصوت...' : audioStatus.error ?? (audio ? `بصوت ${audio.reciter} · قد يستهلك بيانات الهاتف` : 'الصوت غير متاح حالياً حتى يتم التحقق من إذن استخدام التسجيلات')}
           </Text>
           {audio && <Pressable onPress={() => void Linking.openURL(audio.sourceUrl)}><Text style={[styles.sourceLink, { color: colors.primary }]}>مصدر الصوت</Text></Pressable>}
         </View>

@@ -57,5 +57,10 @@ Run a screen-reader pass on real devices with large text sizes enabled:
 - [ ] Obtain written redistribution permission for the dua recordings or
   replace them with licensed audio before release.
 - [ ] Confirm Neon password rotation, automated backups, and a recent restore
-  test.
-- [ ] Confirm Sentry, API uptime alerts, and EAS credential backups are active.
+  drill against an isolated restore target.
+- [ ] Confirm the Neon password was rotated after the restore drill and the
+  deployment secret was updated.
+- [ ] Confirm Sentry source maps uploaded using the EAS secret token.
+- [ ] Trigger a non-production test crash and verify it arrives in Sentry with
+  readable source locations.
+- [ ] Confirm API uptime alerts and EAS credential backups are active.

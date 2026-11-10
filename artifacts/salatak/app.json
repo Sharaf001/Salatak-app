@@ -63,7 +63,7 @@
           "enableBackgroundPlayback": true
         }
       ],
-      "@sentry/react-native"
+      "@sentry/react-native/expo"
     ],
     "experiments": {
       "typedRoutes": true,
