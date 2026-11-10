@@ -53,5 +53,6 @@ updated policy will be published at this URL with a new effective date.
 
 ## Contact
 
-For privacy questions, open an issue in the
-[Salatak repository](https://github.com/Sharaf001/Salatak-app/issues).
+For privacy or support questions, email
+[salatak005@gmail.com](mailto:salatak005@gmail.com). You can also open an issue
+in the [Salatak repository](https://github.com/Sharaf001/Salatak-app/issues).

@@ -11,6 +11,7 @@ import { useSalatak } from '@/providers/SalatakProvider';
 
 const PRAYERS: Array<[PrayerId, string]> = [['fajr', 'الفجر'], ['dhuhr', 'الظهر'], ['asr', 'العصر'], ['maghrib', 'المغرب'], ['isha', 'العشاء']];
 const PRIVACY_POLICY_URL = Constants.expoConfig?.extra?.privacyPolicyUrl as string | undefined;
+const SUPPORT_EMAIL = Constants.expoConfig?.extra?.supportEmail as string | undefined;
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
 export default function SettingsScreen() {
@@ -96,6 +97,7 @@ export default function SettingsScreen() {
           <Text style={[styles.about, { color: colors.mutedForeground }]}>المحتوى الديني من مصادره الموثقة، والتاريخ الهجري حساب تقريبي.</Text>
           <Text style={[styles.about, { color: colors.mutedForeground }]}>الإصدار {APP_VERSION}</Text>
           {PRIVACY_POLICY_URL && <Choice label="سياسة الخصوصية" value="فتح" onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)} colors={colors} />}
+          {SUPPORT_EMAIL && <Choice label="الدعم والخصوصية" value={SUPPORT_EMAIL} onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} colors={colors} />}
           <Choice label="الاعتمادات والمصادر" value="عرض" onPress={() => router.push('/wallpaper-credits')} colors={colors} />
           <Pressable onPress={() => Alert.alert('إعادة الإعدادات', 'هل تريد إعادة إعدادات الصلاة والعرض والتنبيهات؟', [{ text: 'إلغاء', style: 'cancel' }, { text: 'إعادة', style: 'destructive', onPress: state.resetSettings }])}><Text style={[styles.reset, { color: colors.primary }]}>إعادة الإعدادات</Text></Pressable>
         </Section>
