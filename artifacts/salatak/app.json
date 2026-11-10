@@ -71,7 +71,8 @@
     },
     "extra": {
       "privacyPolicyUrl": "https://github.com/Sharaf001/Salatak-app/blob/main/PRIVACY.md",
-      "supportEmail": "salatak005@gmail.com"
+      "supportEmail": "salatak005@gmail.com",
+      "duaAudioEnabled": false
     }
   }
 }

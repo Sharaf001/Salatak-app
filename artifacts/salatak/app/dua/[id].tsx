@@ -1,5 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import Constants from 'expo-constants';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import React, { useEffect, useMemo } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -8,6 +9,8 @@ import { useDuas } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { FALLBACK_DUAS } from '@/data/religious-content';
 import { DUA_AUDIO } from '@/data/dua-audio';
+
+const DUA_AUDIO_ENABLED = Constants.expoConfig?.extra?.duaAudioEnabled === true;
 
 export default function DuaReaderScreen() {
   const colors = useColors();
@@ -18,7 +21,7 @@ export default function DuaReaderScreen() {
   const remote = data?.find((item) => item.slug === id);
   const title = remote?.title ?? fallback?.title ?? 'الدعاء';
   const body = remote?.body && remote.body.length > 200 ? remote.body : fallback?.body ?? remote?.body ?? '';
-  const audio = DUA_AUDIO[id ?? ''];
+  const audio = DUA_AUDIO_ENABLED ? DUA_AUDIO[id ?? ''] : undefined;
   const audioSource = useMemo(
     () => (audio ? { uri: audio.url, name: `${title} - ${audio.reciter}` } : null),
     [audio, title],
@@ -80,7 +83,7 @@ export default function DuaReaderScreen() {
             <Text style={[styles.audioButtonText, { color: colors.primaryForeground }]}>{audioStatus.playing ? 'إيقاف الصوت' : 'تشغيل الصوت'}</Text>
           </Pressable>
           <Text style={[styles.audioNote, { color: colors.deepMuted }]}>
-            {audioStatus.error ?? (audio ? `بصوت ${audio.reciter}` : 'الصوت العربي لأباذر الحلواجي غير متاح لهذا الدعاء حالياً')}
+            {audioStatus.error ?? (audio ? `بصوت ${audio.reciter}` : 'الصوت غير متاح حالياً حتى يتم التحقق من إذن استخدام التسجيلات')}
           </Text>
           {audio && <Pressable onPress={() => void Linking.openURL(audio.sourceUrl)}><Text style={[styles.sourceLink, { color: colors.primary }]}>مصدر الصوت</Text></Pressable>}
         </View>

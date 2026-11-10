@@ -11,6 +11,8 @@
 - Set `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` in the EAS build
   environment so Sentry can upload source maps and produce readable stack
   traces. Keep the auth token secret.
+- Set `EXPO_PUBLIC_EAS_PROJECT_ID` in the EAS build/update environment. This
+  enables the Expo Updates URL without committing project metadata.
 - Set the GitHub `EXPO_TOKEN` secret to enable the preview-build job.
 - Set the GitHub `API_HEALTH_URL` secret to enable the scheduled uptime check.
 
@@ -21,6 +23,8 @@
   `artifacts/salatak` so Expo packages and React Native remain in lockstep.
 - For each release, run the automated gates in CI and complete
   [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
+- Publish JavaScript and content fixes with `eas update --channel
+  production`; native changes still require a new build.
 - Test the preview build on every listed OS/device/language/dark-mode
   combination before submission.
 
