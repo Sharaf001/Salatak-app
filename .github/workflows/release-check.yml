@@ -27,6 +27,14 @@ jobs:
       - run: pnpm --filter @workspace/salatak test
       - run: pnpm --filter @workspace/salatak exec npx expo-doctor
       - run: pnpm --filter @workspace/salatak exec expo install --check
+      - name: Report content sizes
+        run: |
+          quran_bytes=$(wc -c < artifacts/salatak/data/quran-verses.json)
+          wallpaper_bytes=$(find artifacts/salatak/assets/wallpapers -type f -printf '%s\n' | awk '{sum += $1} END {print sum + 0}')
+          app_bytes=$(find artifacts/salatak -type f -printf '%s\n' | awk '{sum += $1} END {print sum + 0}')
+          echo "quran-verses.json: ${quran_bytes} bytes"
+          echo "wallpapers: ${wallpaper_bytes} bytes"
+          echo "artifacts/salatak: ${app_bytes} bytes"
 
   preview-build:
     if: ${{ github.event_name == 'push' || inputs.build_preview == true }}

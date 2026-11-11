@@ -48,8 +48,19 @@
 - Before Ramadan and Muharram, review
   `artifacts/salatak/data/islamic-occasions.ts` and the configured prayer
   methods.
+- Before Ramadan and Muharram, review the Hijri occasions and prayer methods
+  with a qualified reviewer and record the sign-off in `CONTENT_LOG.md`.
 - Yearly, rotate deployment secrets, change the Neon password if it has not
-  been rotated, and re-check Apple and Google store requirements.
+  been rotated, re-check Apple and Google target-SDK deadlines, and record
+  the review date in the release record.
+
+## Branch protection
+
+Protect `main` in the GitHub repository settings. Require pull requests and
+the exact required status check `Salatak checks / typecheck-and-test` before
+merging. This repository-side requirement must be verified after workflow
+renames or job-ID changes; it cannot be enforced by a checked-in workflow
+alone.
 
 ## Monitoring and recovery
 

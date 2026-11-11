@@ -3,6 +3,10 @@
 This file is the release inventory for text, audio, and images. Update it when
 adding or replacing an asset.
 
+The release review table with reviewer sign-off and dates is maintained in
+[CONTENT_LOG.md](./CONTENT_LOG.md). Do not ship an asset without an approved
+entry there.
+
 ## Religious text
 
 - Quran: `artifacts/salatak/data/quran-verses.json`; source and download

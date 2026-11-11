@@ -7,6 +7,10 @@
 - [ ] `expo-doctor`
 - [ ] `expo install --check`
 - [ ] Preview EAS build succeeds
+- [ ] Every content/image/audio row in `CONTENT_LOG.md` has a named reviewer,
+  ISO-8601 review date, and `Approved` status
+- [ ] Record the release bundle size and compare it with the baseline in
+  `CONTENT_LOG.md`
 
 ## Device matrix
 
@@ -64,3 +68,10 @@ Run a screen-reader pass on real devices with large text sizes enabled:
 - [ ] Trigger a non-production test crash and verify it arrives in Sentry with
   readable source locations.
 - [ ] Confirm API uptime alerts and EAS credential backups are active.
+
+## Merge protection
+
+- [ ] GitHub `main` branch protection requires the
+  `Salatak checks / typecheck-and-test` CI check to pass before merging.
+- [ ] Require pull requests and dismiss stale approvals when repository policy
+  allows.
