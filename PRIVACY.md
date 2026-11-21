@@ -25,6 +25,9 @@ uses and how it is handled.
 - **Optional crash diagnostics:** If Sentry is configured for a production
   build, it receives crash reports and limited technical diagnostics needed to
   investigate failures. Sentry is disabled when no DSN is configured.
+- **Verse sharing:** When you choose to share a Quran verse, the app sends only
+  the selected verse text and reference to the device share sheet. The app
+  does not upload sharing activity to Salatak servers.
 - **Local app data:** Bookmarks, the rak'ah counter, and notification
   preferences are stored locally on your device. This data is not uploaded to
   Salatak servers.

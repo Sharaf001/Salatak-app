@@ -69,6 +69,9 @@ alone.
   source maps produce readable stack traces without collecting unnecessary
   personal data.
 - Configure the API health endpoint and alerting owner for the uptime workflow.
+- Configure Sentry alert rules for new issues and error-rate spikes. Trigger a
+  one-time test exception from a non-production build and verify the source
+  map, alert, and issue owner before production release.
 - Enable Neon automated backups and periodically perform a restore test.
 - Record incidents, credential rotations, and restore tests in the changelog
   or deployment record.

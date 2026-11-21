@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { getLocales } from 'expo-localization';
 import type { PrayerId, PrayerMethod } from '@/hooks/usePrayerTimes';
+import type { AppLanguage } from '@/data/strings';
 
 const STORAGE_KEY = '@salatak/state';
 const MIN_NOTIFICATION_LEAD_MINUTES = 0;
@@ -27,6 +29,7 @@ export type SalatakState = {
   quranTextSize: number;
   prayerNotifications: Record<PrayerId, boolean>;
   notificationLeadMinutes: number;
+  appLanguage: AppLanguage;
 };
 
 type SalatakContextValue = SalatakState & {
@@ -53,6 +56,7 @@ type SalatakContextValue = SalatakState & {
   setQuranTextSize: (size: number) => void;
   setPrayerNotification: (prayer: PrayerId, enabled: boolean) => void;
   setNotificationLeadMinutes: (minutes: number) => void;
+  setAppLanguage: (language: AppLanguage) => void;
   resetSettings: () => void;
 };
 
@@ -76,6 +80,7 @@ const initialState: SalatakState = {
   quranTextSize: 22,
   prayerNotifications: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
   notificationLeadMinutes: 0,
+  appLanguage: getLocales()[0]?.languageCode === 'en' ? 'en' : 'ar',
 };
 
 const SalatakContext = createContext<SalatakContextValue | null>(null);
@@ -165,6 +170,7 @@ export function SalatakProvider({ children }: { children: React.ReactNode }) {
       setQuranTextSize: (quranTextSize) => persist({ ...state, quranTextSize: Math.max(16, Math.min(32, quranTextSize)) }),
       setPrayerNotification: (prayer, enabled) => persist({ ...state, prayerNotifications: { ...state.prayerNotifications, [prayer]: enabled } }),
       setNotificationLeadMinutes: (notificationLeadMinutes) => persist({ ...state, notificationLeadMinutes: normalizeNotificationLeadMinutes(notificationLeadMinutes) }),
+      setAppLanguage: (appLanguage) => persist({ ...state, appLanguage }),
       resetSettings: () => persist({ ...state, ...settingsDefaults }),
     }),
     [isReady, state],
@@ -182,6 +188,7 @@ const settingsDefaults = {
   quranTextSize: initialState.quranTextSize,
   prayerNotifications: initialState.prayerNotifications,
   notificationLeadMinutes: initialState.notificationLeadMinutes,
+  appLanguage: initialState.appLanguage,
 };
 
 function getDayKey(date: Date): string {
@@ -234,6 +241,7 @@ function sanitizeState(value: unknown): SalatakState {
     quranTextSize: boundedInteger(saved.quranTextSize, 16, 32, initialState.quranTextSize),
     prayerNotifications: booleanRecordWithDefaults(saved.prayerNotifications, initialState.prayerNotifications),
     notificationLeadMinutes: normalizeNotificationLeadMinutes(numberValue(saved.notificationLeadMinutes, initialState.notificationLeadMinutes)),
+    appLanguage: saved.appLanguage === 'en' ? 'en' : 'ar',
   };
 }
 

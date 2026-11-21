@@ -27,6 +27,12 @@ jobs:
       - run: pnpm --filter @workspace/salatak test
       - run: pnpm --filter @workspace/salatak exec npx expo-doctor
       - run: pnpm --filter @workspace/salatak exec expo install --check
+      - name: Enforce content release log
+        run: |
+          if grep -E 'Pending|Not signed off' CONTENT_LOG.md; then
+            echo "::error::CONTENT_LOG.md contains unapproved or pending content rows"
+            exit 1
+          fi
       - name: Report content sizes
         run: |
           quran_bytes=$(wc -c < artifacts/salatak/data/quran-verses.json)

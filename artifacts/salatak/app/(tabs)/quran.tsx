@@ -9,6 +9,8 @@ import {
   TextInput,
   View,
   useWindowDimensions,
+  Alert,
+  Share,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -341,6 +343,20 @@ export default function QuranScreen() {
     setCurrentPage(target);
     readerListRef.current?.scrollToIndex({ index: target - 1, animated: true });
   };
+  const openVerseActions = (surahNumber: number, ayahNumber: number, verse: string) => {
+    const key = `quran-verse-${surahNumber}:${ayahNumber}`;
+    const surahName = surahs.find((item) => Number(item.id.replace('surah-', '')) === surahNumber)?.name ?? '';
+    const bookmarked = isBookmarked(key);
+    Alert.alert(
+      `سورة ${surahName} · آية ${toArabicDigits(ayahNumber)}`,
+      verse,
+      [
+        { text: bookmarked ? 'إزالة العلامة' : 'حفظ الآية', onPress: () => toggleBookmark(key) },
+        { text: 'مشاركة الآية', onPress: () => void Share.share({ message: `${verse}\n— سورة ${surahName}، الآية ${toArabicDigits(ayahNumber)}\nصلاتك` }) },
+        { text: 'إلغاء', style: 'cancel' },
+      ],
+    );
+  };
   const exitReader = () => {
     setQuranReaderActive(false);
     setSelectedId(null);
@@ -408,7 +424,7 @@ export default function QuranScreen() {
                 styles.mushafPage,
                 {
                   width: windowWidth - 24,
-                  height: Math.max(windowHeight - insets.top - 92, 400),
+                  height: Math.max(windowHeight - insets.top - insets.bottom - 150, 360),
                   marginHorizontal: 12,
                   backgroundColor: '#FFFFFF',
                   borderColor: '#D9D6CE',
@@ -443,9 +459,28 @@ export default function QuranScreen() {
                           <Text style={[styles.basmalaOnPage, { color: '#000000' }]}>{BASMALA_TEXT}</Text>
                         ) : null}
                         {text ? (
-                          <Text style={[styles.mushafText, { color: '#000000', fontSize: 22, lineHeight: 38 }]}>
-                            {text}
-                          </Text>
+                              <Text
+                                style={[styles.mushafText, { color: '#000000', fontSize: 19, lineHeight: 32 }]}
+                              >
+                                {segment.map((entry, verseIndex) => {
+                                  let verse = QURAN_VERSES[String(surahNumber)]?.[entry.ayah - 1] ?? '';
+                                  if (entry.ayah === 1 && surahNumber === 1) {
+                                    verse = `${BASMALA_TEXT} ${verse}`;
+                                  } else if (entry.ayah === 1 && surahNumber !== 9) {
+                                    verse = stripBasmalaPrefix(verse);
+                                  }
+                                  return (
+                                    <Text
+                                      key={`${surahNumber}:${entry.ayah}`}
+                                      onPress={() => openVerseActions(surahNumber, entry.ayah, verse)}
+                                      style={[{ color: '#000000' }]}
+                                    >
+                                      {verse.trim()} <Text style={{ color: '#6E8F67', fontWeight: '700' }}>﴿{toArabicDigits(entry.ayah)}﴾</Text>
+                                      {verseIndex < segment.length - 1 ? '  ' : ''}
+                                    </Text>
+                                  );
+                                })}
+                              </Text>
                         ) : null}
                       </View>
                     );

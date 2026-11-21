@@ -9,6 +9,10 @@
 - [ ] Preview EAS build succeeds
 - [ ] Every content/image/audio row in `CONTENT_LOG.md` has a named reviewer,
   ISO-8601 review date, and `Approved` status
+- [ ] Preview-channel EAS Update deployed and smoke-tested before production
+- [ ] Store screenshots and Arabic/English descriptions prepared
+- [ ] Store listing includes privacy labels, age rating, screenshots, and
+  Arabic/English descriptions
 - [ ] Record the release bundle size and compare it with the baseline in
   `CONTENT_LOG.md`
 

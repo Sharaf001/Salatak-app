@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatGeocodedCity, MANUAL_CITIES, PRAYER_METHODS, type ManualCity, type PrayerId } from '@/hooks/usePrayerTimes';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
+import { getStrings } from '@/data/strings';
 
 const PRAYERS: Array<[PrayerId, string]> = [['fajr', 'الفجر'], ['dhuhr', 'الظهر'], ['asr', 'العصر'], ['maghrib', 'المغرب'], ['isha', 'العشاء']];
 const PRIVACY_POLICY_URL = Constants.expoConfig?.extra?.privacyPolicyUrl as string | undefined;
@@ -17,6 +18,7 @@ const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 export default function SettingsScreen() {
   const colors = useColors();
   const state = useSalatak();
+  const strings = getStrings(state.appLanguage);
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<ManualCity[]>([]);
   const [leadText, setLeadText] = useState(String(state.notificationLeadMinutes));
@@ -72,32 +74,50 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={() => router.back()} style={styles.back}><Feather name="arrow-right" size={20} color={colors.deep} /><Text style={[styles.backText, { color: colors.deep }]}>الإعدادات</Text></Pressable>
-        <Section title="الصلاة" colors={colors}>
+        <Pressable onPress={() => router.back()} style={styles.back}><Feather name="arrow-right" size={20} color={colors.deep} /><Text style={[styles.backText, { color: colors.deep }]}>{strings.settings}</Text></Pressable>
+        <Section title={strings.language} colors={colors}>
+          <Choice
+            label={state.appLanguage === 'ar' ? strings.arabic : strings.english}
+            value={state.appLanguage === 'ar' ? strings.english : strings.arabic}
+            onPress={() => state.setAppLanguage(state.appLanguage === 'ar' ? 'en' : 'ar')}
+            colors={colors}
+          />
+        </Section>
+        <Section title={state.appLanguage === 'ar' ? 'الصلاة' : 'Prayer'} colors={colors}>
           <Choice label="طريقة الحساب" value={PRAYER_METHODS[state.prayerMethod]} onPress={() => state.setPrayerMethod(state.prayerMethod === 'tehran' ? 'qom' : 'tehran')} colors={colors} />
           <Choice label="قاعدة العصر" value={state.asrMadhab === 'shafi' ? 'الشافعي (ظل واحد)' : 'الحنفي (ظلان)'} onPress={() => state.setAsrMadhab(state.asrMadhab === 'shafi' ? 'hanafi' : 'shafi')} colors={colors} />
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>التعديلات بالدقائق تضاف إلى مواقيت الصلاة.</Text>
           {PRAYERS.map(([id, label]) => <Stepper key={id} label={label} value={state.prayerOffsets[id]} onChange={(value) => state.setPrayerOffset(id, value)} colors={colors} />)}
         </Section>
-        <Section title="الموقع" colors={colors}>
+        <Section title={state.appLanguage === 'ar' ? 'الموقع' : 'Location'} colors={colors}>
           <TextInput value={search} onChangeText={setSearch} placeholder="ابحث عن مدينة" placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.deep, borderColor: colors.border }]} />
           {(search ? cities : MANUAL_CITIES.slice(0, 6)).map((city) => <Choice key={city.id} label={`${city.name}، ${city.country}`} value={state.selectedCity?.id === city.id ? 'محددة' : ''} onPress={() => { state.setSelectedCity(city); setSearch(''); }} colors={colors} />)}
         </Section>
-        <Section title="الهجري والعرض" colors={colors}>
+        <Section title={strings.hijriAndDisplay} colors={colors}>
           <Stepper label="تعديل التاريخ الهجري" value={state.hijriOffset} min={-2} max={2} onChange={state.setHijriOffset} colors={colors} />
           <Choice label="صيغة الوقت" value={state.timeFormat} onPress={() => state.setTimeFormat(state.timeFormat === '24h' ? '12h' : '24h')} colors={colors} />
           <Stepper label="حجم نص القرآن" value={state.quranTextSize} min={16} max={32} step={2} onChange={state.setQuranTextSize} colors={colors} />
         </Section>
-        <Section title="التنبيهات" colors={colors}>
+        <Section title={strings.alerts} colors={colors}>
           {PRAYERS.map(([id, label]) => <Toggle key={id} label={label} value={state.prayerNotifications[id]} onChange={(value) => state.setPrayerNotification(id, value)} colors={colors} />)}
           <View style={styles.row}><Text style={[styles.label, { color: colors.deep }]}>التنبيه قبل (دقيقة)</Text><TextInput keyboardType="number-pad" value={leadText} onChangeText={setLead} style={[styles.numberInput, { color: colors.deep, borderColor: colors.border }]} /></View>
         </Section>
-        <Section title="حول التطبيق" colors={colors}>
+        <Section title={strings.aboutApp} colors={colors}>
           <Text style={[styles.about, { color: colors.mutedForeground }]}>صلاتك · مواقيت الصلاة والقرآن والأذكار</Text>
           <Text style={[styles.about, { color: colors.mutedForeground }]}>المحتوى الديني من مصادره الموثقة، والتاريخ الهجري حساب تقريبي.</Text>
           <Text style={[styles.about, { color: colors.mutedForeground }]}>الإصدار {APP_VERSION}</Text>
           {PRIVACY_POLICY_URL && <Choice label="سياسة الخصوصية" value="فتح" onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)} colors={colors} />}
           {SUPPORT_EMAIL && <Choice label="الدعم والخصوصية" value={SUPPORT_EMAIL} onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} colors={colors} />}
+          {SUPPORT_EMAIL && <Choice
+            label={strings.reportContentError}
+            value="إنشاء رسالة"
+            onPress={() => {
+              const subject = encodeURIComponent('Salatak content error report');
+              const body = encodeURIComponent(`Please describe the content error:\n\nScreen:\nVerse or text:\nSuggested correction:\n`);
+              void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`);
+            }}
+            colors={colors}
+          />}
           <Choice label="الاعتمادات والمصادر" value="عرض" onPress={() => router.push('/wallpaper-credits')} colors={colors} />
           <Pressable onPress={() => Alert.alert('إعادة الإعدادات', 'هل تريد إعادة إعدادات الصلاة والعرض والتنبيهات؟', [{ text: 'إلغاء', style: 'cancel' }, { text: 'إعادة', style: 'destructive', onPress: state.resetSettings }])}><Text style={[styles.reset, { color: colors.primary }]}>إعادة الإعدادات</Text></Pressable>
         </Section>
