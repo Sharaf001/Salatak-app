@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "@workspace/db",
   "version": "0.0.0",
   "private": true,
@@ -13,7 +13,7 @@
     "seed": "tsx src/seed.ts"
   },
   "dependencies": {
-    "dotenv": "^17.2.2",
+    "dotenv": "^18.0.9",
     "drizzle-orm": "catalog:",
     "drizzle-zod": "^0.8.3",
     "pg": "^8.23.0",
