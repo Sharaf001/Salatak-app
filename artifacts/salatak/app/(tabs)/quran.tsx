@@ -208,7 +208,7 @@ export default function QuranScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const readerListRef = useRef<FlatList<number>>(null);
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const saveVerseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setLastReadVerseRef = useRef(setLastReadVerse);
   setLastReadVerseRef.current = setLastReadVerse;
@@ -280,7 +280,7 @@ export default function QuranScreen() {
     requestAnimationFrame(() => {
       readerListRef.current?.scrollToIndex({ index: targetPage - 1, animated: false });
     });
-  }, [selectedId, lastReadSurah, lastReadVerse, setLastReadSurah, windowWidth]);
+  }, [selectedId]);
   const onViewableItemsChanged = useCallback(({ viewableItems }: {
     viewableItems: Array<{ index?: number | null; item?: number }>;
     changed: Array<{ index?: number | null }>;
@@ -377,9 +377,11 @@ export default function QuranScreen() {
               offset: index * windowWidth,
               index,
             })}
-            initialNumToRender={3}
-            maxToRenderPerBatch={3}
-            windowSize={5}
+            initialNumToRender={2}
+            maxToRenderPerBatch={2}
+            windowSize={3}
+            removeClippedSubviews
+            style={styles.mushafSlider}
             keyExtractor={(page) => `quran-page-${page}`}
             contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
             onViewableItemsChanged={onViewableItemsChanged}
@@ -398,8 +400,18 @@ export default function QuranScreen() {
                 else segments.push([entry]);
               });
 
-              return (
-                <View style={[styles.mushafPage, { width: windowWidth - 24, marginHorizontal: 12, backgroundColor: '#FFFFFF', borderColor: '#D9D6CE' }]}>
+              const pageStyle = [
+                styles.mushafPage,
+                {
+                  width: windowWidth - 24,
+                  height: Math.max(windowHeight - insets.top - 92, 400),
+                  marginHorizontal: 12,
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#D9D6CE',
+                },
+              ];
+              const pageContent = (
+                <>
                   <View style={[styles.mushafPageMeta, { borderBottomColor: colors.border }]}>
                     <Text style={[styles.mushafMetaText, { color: colors.gold }]}>الجزء {toArabicDigits(juz)}</Text>
                     <Text style={[styles.mushafMetaText, { color: colors.deepMuted }]}>صفحة {toArabicDigits(page)} / {toArabicDigits(QURAN_PAGES.pageCount)}</Text>
@@ -434,8 +446,9 @@ export default function QuranScreen() {
                       </View>
                     );
                   })}
-                </View>
+                </>
               );
+              return <View style={pageStyle}>{pageContent}</View>;
             }}
           />
         </View>
@@ -542,7 +555,7 @@ const styles = StyleSheet.create({
   surahMeta: { fontSize: 10, textAlign: 'right', marginTop: 2 },
   excerpt: { fontSize: 12, textAlign: 'right', marginTop: 5 },
   matchingVerses: { fontSize: 12, textAlign: 'right', marginTop: 5 },
-  readerCard: { borderRadius: 22, padding: 17 },
+  readerCard: { borderRadius: 14, padding: 6 },
   reader: { flex: 1 },
   backButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   backButtonText: { fontSize: 13, fontWeight: '700' },
@@ -550,16 +563,18 @@ const styles = StyleSheet.create({
   readerActions: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   pageNavButton: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   readerTitle: { alignItems: 'center' },
-  readerSurah: { fontSize: 23, fontWeight: '700', fontFamily: 'Amiri_400Regular' },
-  readerMeta: { fontSize: 11, marginTop: 3 },
+  readerSurah: { fontSize: 15, lineHeight: 20, fontWeight: '700', fontFamily: 'Amiri_400Regular' },
+  readerMeta: { fontSize: 10, lineHeight: 14, marginTop: 1 },
   audioNote: { fontSize: 11, textAlign: 'right', marginTop: 10 },
-  mushafPage: { marginTop: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 17, paddingVertical: 12, minHeight: 360 },
+  mushafSlider: { flex: 1 },
+  mushafPage: { marginTop: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 17, paddingVertical: 12 },
+  mushafPageContent: { paddingBottom: 18 },
   mushafPageMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, paddingBottom: 8 },
   mushafMetaText: { fontSize: 11, textAlign: 'center', minWidth: 70 },
   mushafPageTitle: { fontSize: 12, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
-  surahBanner: { alignSelf: 'center', marginTop: 10, borderTopWidth: 1, borderBottomWidth: 1, paddingHorizontal: 30, paddingVertical: 4 },
-  surahBannerText: { fontSize: 21, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
-  basmalaOnPage: { fontSize: 25, lineHeight: 44, textAlign: 'center', paddingTop: 8, fontFamily: 'Amiri_400Regular' },
+  surahBanner: { alignSelf: 'center', marginTop: 4, borderTopWidth: 1, borderBottomWidth: 1, paddingHorizontal: 24, paddingVertical: 1 },
+  surahBannerText: { fontSize: 16, lineHeight: 24, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
+  basmalaOnPage: { fontSize: 21, lineHeight: 36, textAlign: 'center', paddingTop: 4, fontFamily: 'Amiri_400Regular' },
   mushafText: { textAlign: 'justify', writingDirection: 'rtl', fontFamily: 'Amiri_400Regular', paddingTop: 10 },
   mushafPageFooter: { alignItems: 'center', marginTop: 16, paddingTop: 8 },
   mushafFooterText: { fontSize: 11 },
