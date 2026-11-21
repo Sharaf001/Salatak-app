@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Added release gates for typecheck, tests, Expo Doctor, and Expo dependency checks.
-- Disabled unverified Dua recordings; playback requires written permission or a documented open/commercial-use license.
+- Removed the Dua recording option; recordings are not exposed in the app.
 
 ## 1.0.0
 

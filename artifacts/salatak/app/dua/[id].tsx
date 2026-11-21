@@ -1,16 +1,11 @@
 import { Feather } from '@expo/vector-icons';
-import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import Constants from 'expo-constants';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDuas } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { FALLBACK_DUAS } from '@/data/religious-content';
-import { DUA_AUDIO, isDuaAudioApproved } from '@/data/dua-audio';
-
-const DUA_AUDIO_ENABLED = Constants.expoConfig?.extra?.duaAudioEnabled === true;
 
 export default function DuaReaderScreen() {
   const colors = useColors();
@@ -21,43 +16,6 @@ export default function DuaReaderScreen() {
   const remote = data?.find((item) => item.slug === id);
   const title = remote?.title ?? fallback?.title ?? 'الدعاء';
   const body = remote?.body && remote.body.length > 200 ? remote.body : fallback?.body ?? remote?.body ?? '';
-  const configuredAudio = DUA_AUDIO_ENABLED ? DUA_AUDIO[id ?? ''] : undefined;
-  const audio = isDuaAudioApproved(configuredAudio) ? configuredAudio : undefined;
-  const audioSource = useMemo(
-    () => (audio ? { uri: audio.url, name: `${title} - ${audio.reciter}` } : null),
-    [audio, title],
-  );
-  const audioPlayer = useAudioPlayer(audioSource, {
-    downloadFirst: false,
-    preferredForwardBufferDuration: 30,
-  });
-  const audioStatus = useAudioPlayerStatus(audioPlayer);
-  const [audioRequested, setAudioRequested] = useState(false);
-  const audioLoading = audioRequested && !audioStatus.playing && (audioStatus.isBuffering || !audioStatus.isLoaded);
-  useEffect(() => {
-    setAudioRequested(false);
-  }, [id]);
-  const playAudio = async () => {
-    setAudioRequested(true);
-    try {
-      await setAudioModeAsync({
-        playsInSilentMode: true,
-        allowsRecording: false,
-        shouldPlayInBackground: true,
-        interruptionMode: 'doNotMix',
-      });
-      await setIsAudioActiveAsync(true);
-      audioPlayer.play();
-    } catch (error) {
-      setAudioRequested(false);
-      console.warn('Dua audio playback failed:', error);
-    }
-  };
-
-  useEffect(() => {
-    audioPlayer.volume = 1;
-  }, [audioPlayer]);
-
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -72,28 +30,6 @@ export default function DuaReaderScreen() {
             <Text style={[styles.title, { color: colors.deep }]}>{title}</Text>
           </View>
           <View style={[styles.icon, { backgroundColor: colors.secondary }]}><Feather name="heart" size={19} color={colors.primary} /></View>
-        </View>
-        <View style={[styles.audioCard, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={audioStatus.playing ? 'إيقاف صوت الدعاء' : audioLoading ? 'جارٍ تحميل صوت الدعاء' : 'تشغيل صوت الدعاء'}
-            disabled={!audio}
-            onPress={() => {
-              if (audioStatus.playing) {
-                audioPlayer.pause();
-              } else {
-                void playAudio();
-              }
-            }}
-            style={[styles.audioButton, { backgroundColor: audio ? colors.primary : colors.border }]}
-          >
-            <Feather name={audioStatus.playing ? 'pause' : audioLoading ? 'loader' : 'play'} size={16} color={colors.primaryForeground} />
-            <Text style={[styles.audioButtonText, { color: colors.primaryForeground }]}>{audioStatus.playing ? 'إيقاف الصوت' : audioLoading ? 'جارٍ التحميل...' : 'تشغيل الصوت'}</Text>
-          </Pressable>
-          <Text style={[styles.audioNote, { color: colors.deepMuted }]}>
-            {audioLoading ? 'جارٍ تحميل الصوت...' : audioStatus.error ?? (audio ? `بصوت ${audio.reciter} · قد يستهلك بيانات الهاتف` : 'الصوت غير متاح حالياً؛ لم يتم التحقق من إذن واضح للاستخدام')}
-          </Text>
-          {audio && <Pressable onPress={() => void Linking.openURL(audio.sourceUrl)}><Text style={[styles.sourceLink, { color: colors.primary }]}>مصدر الصوت</Text></Pressable>}
         </View>
         <View style={[styles.notice, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
           <Text style={[styles.noticeText, { color: colors.deepMuted }]}>المصدر النصي: سجلات ShiaCompanion العربية. النص قيد مراجعة شخص مؤهل.</Text>
@@ -115,11 +51,6 @@ const styles = StyleSheet.create({
   eyebrow: { textAlign: 'right', fontSize: 12 },
   title: { textAlign: 'right', fontSize: 27, fontWeight: '700', marginTop: 6 },
   icon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  audioCard: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 16, alignItems: 'flex-end', gap: 8 },
-  audioButton: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
-  audioButtonText: { fontSize: 13, fontWeight: '700' },
-  audioNote: { fontSize: 11 },
-  sourceLink: { fontSize: 11, textDecorationLine: 'underline' },
   notice: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 16 },
   noticeText: { textAlign: 'right', fontSize: 12, lineHeight: 19 },
   reader: { borderWidth: 1, borderRadius: 18, padding: 18 },
