@@ -44,12 +44,37 @@ async function main() {
   console.log("Downloading the Quran text...");
   const res = await fetch(URL_ALL);
   if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
-  const data = convert(await res.json());
+  const payload = await res.json();
+  const data = convert(payload);
+  const pages = {};
+  const juzPages = Array(31).fill(0);
+  let pageCount = 0;
+  for (const surah of payload?.data?.surahs ?? []) {
+    for (const ayah of surah.ayahs ?? []) {
+      const page = ayah.page;
+      if (!pages[String(page)]) pages[String(page)] = [];
+      pages[String(page)].push({
+        surah: surah.number,
+        ayah: ayah.numberInSurah,
+        juz: ayah.juz,
+      });
+      if (juzPages[ayah.juz] === 0) juzPages[ayah.juz] = page;
+      pageCount = Math.max(pageCount, page);
+    }
+  }
+  if (pageCount !== 604) throw new Error(`Expected 604 Quran pages, got ${pageCount}`);
+  const pageMetadata = {
+    pageCount: 604,
+    juzCount: 30,
+    juzPages: juzPages.slice(1),
+    pages,
+  };
   const here = dirname(fileURLToPath(import.meta.url));
   const dir = join(here, "..", "data");
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, "quran-verses.json"), JSON.stringify(data));
-  console.log("Done: 114 surahs, 6236 verses written to data/quran-verses.json");
+  writeFileSync(join(dir, "quran-pages.json"), JSON.stringify(pageMetadata));
+  console.log("Done: 114 surahs, 6236 verses, 604 pages written");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

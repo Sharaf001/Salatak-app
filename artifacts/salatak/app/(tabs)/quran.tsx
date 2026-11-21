@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -15,12 +16,21 @@ import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlaye
 import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
+import quranPages from '@/data/quran-pages.json';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 
 // Verse text lives in data/quran-verses.json and is generated from the
 // validated Al Quran Cloud Uthmani edition by scripts/download-quran.mjs.
 const QURAN_VERSES = quranVerses as Record<string, string[]>;
+type QuranPageEntry = { surah: number; ayah: number; juz: number };
+type QuranPageMetadata = {
+  pageCount: number;
+  juzCount: number;
+  juzPages: number[];
+  pages: Record<string, QuranPageEntry[]>;
+};
+const QURAN_PAGES = quranPages as QuranPageMetadata;
 const PLACEHOLDER_READER_VERSES = [
   'تعذر تحميل نص هذه السورة. تحقق من ملف بيانات القرآن.',
 ];
@@ -178,6 +188,16 @@ function prepareReader(n: number, raw: string[]): { bismillah: boolean; verses: 
   return { bismillah: n !== 9, verses };
 }
 
+function toArabicDigits(value: number): string {
+  return String(value).replace(/\d/g, (digit) => '٠١٢٣٤٥٦٧٨٩'[Number(digit)]);
+}
+
+function stripBasmalaPrefix(text: string): string {
+  const words = text.trim().split(/\s+/);
+  const rest = words.slice(4).join(' ').trim();
+  return rest || text;
+}
+
 export default function QuranScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -185,7 +205,8 @@ export default function QuranScreen() {
   const { surah: requestedSurah } = useLocalSearchParams<{ surah?: string }>();
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const readerListRef = useRef<FlatList<string>>(null);
+  const readerListRef = useRef<FlatList<number>>(null);
+  const { width: windowWidth } = useWindowDimensions();
   const saveVerseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setLastReadVerseRef = useRef(setLastReadVerse);
   setLastReadVerseRef.current = setLastReadVerse;
@@ -237,10 +258,20 @@ export default function QuranScreen() {
     const resumeVerse = selectedId === lastReadSurah ? lastReadVerse : 0;
     if (selectedId !== lastReadSurah) setLastReadSurah(selectedId);
     requestAnimationFrame(() => {
+      const surahNumber = Number(selectedId.replace('surah-', ''));
+      const firstPage = Object.keys(QURAN_PAGES.pages)
+        .map(Number)
+        .find((page) => QURAN_PAGES.pages[String(page)].some((entry) => entry.surah === surahNumber));
       if (resumeVerse > 0) {
-        readerListRef.current?.scrollToIndex({ index: resumeVerse, animated: false });
-      } else {
-        readerListRef.current?.scrollToOffset({ offset: 0, animated: false });
+        const resumePage = Object.keys(QURAN_PAGES.pages)
+          .map(Number)
+          .find((page) => QURAN_PAGES.pages[String(page)].some((entry) =>
+            entry.surah === surahNumber && entry.ayah - 1 === resumeVerse,
+          ));
+        if (resumePage) readerListRef.current?.scrollToIndex({ index: resumePage - 1, animated: false });
+        else if (firstPage) readerListRef.current?.scrollToIndex({ index: firstPage - 1, animated: false });
+      } else if (firstPage) {
+        readerListRef.current?.scrollToIndex({ index: firstPage - 1, animated: false });
       }
     });
   }, [selectedId]);
@@ -252,15 +283,18 @@ export default function QuranScreen() {
     if (typeof firstVisible !== 'number') return;
     if (saveVerseTimeoutRef.current) clearTimeout(saveVerseTimeoutRef.current);
     saveVerseTimeoutRef.current = setTimeout(() => {
-      setLastReadVerseRef.current(firstVisible);
+      const pageNumber = firstVisible + 1;
+      const entries = QURAN_PAGES.pages[String(pageNumber)] ?? [];
+      const firstEntry = entries[0];
+      if (firstEntry) {
+        setLastReadSurah(`surah-${firstEntry.surah}`);
+        setLastReadVerseRef.current(firstEntry.ayah - 1);
+      }
     }, 250);
-  }, []);
+  }, [setLastReadSurah]);
   useEffect(() => () => {
     if (saveVerseTimeoutRef.current) clearTimeout(saveVerseTimeoutRef.current);
   }, []);
-  const reader = selected
-    ? prepareReader(Number(selected.id.replace('surah-', '')), selected.readerVerses)
-    : { bismillah: false, verses: [] as string[] };
   const audioSource = useMemo(
     () => (selected ? `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${selected.id.replace('surah-', '')}.mp3` : null),
     [selected?.id],
@@ -294,46 +328,91 @@ export default function QuranScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       {selected ? (
-        <FlatList
-          ref={readerListRef}
-          data={reader.verses}
-          keyExtractor={(_, index) => `${selected.id}-${index}`}
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
-          ListHeaderComponent={
-            <View style={[styles.readerCard, { backgroundColor: colors.strongSurface }]}>
-              <View style={styles.readerHeader}>
-                <Pressable accessibilityRole="button" accessibilityLabel="العودة إلى قائمة السور" onPress={() => setSelectedId(null)} hitSlop={12}><Feather name="chevron-right" size={20} color={colors.mutedForeground} /></Pressable>
-                <View style={styles.readerTitle}>
-                  <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
-                  <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
-                </View>
-                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : audioLoading ? 'جارٍ تحميل التلاوة' : 'تشغيل تلاوة السورة'} onPress={() => { if (audioStatus.playing) audioPlayer.pause(); else void playRecitation(); }} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : audioLoading ? 'loader' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
+        <View style={[styles.reader, { backgroundColor: colors.background }]}>
+          <View style={[styles.readerCard, { backgroundColor: colors.strongSurface }]}>
+            <View style={styles.readerHeader}>
+              <Pressable accessibilityRole="button" accessibilityLabel="العودة إلى قائمة السور" onPress={() => setSelectedId(null)} hitSlop={12} style={styles.backButton}>
+                <Feather name="chevron-right" size={18} color={colors.primaryForeground} />
+                <Text style={[styles.backButtonText, { color: colors.primaryForeground }]}>رجوع</Text>
+              </Pressable>
+              <View style={styles.readerTitle}>
+                <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
+                <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
               </View>
-              {reader.bismillah ? <Text style={styles.bismillah}>{BASMALA_TEXT}</Text> : null}
-              <Text style={[styles.audioNote, { color: colors.deepMuted }]}>
-                {audioLoading ? 'جارٍ تحميل التلاوة...' : audioStatus.error ?? 'تنبيه: قد يستهلك تشغيل التلاوة بيانات الهاتف عند استخدام شبكة الجوال.'}
-              </Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : audioLoading ? 'جارٍ تحميل التلاوة' : 'تشغيل تلاوة السورة'} onPress={() => { if (audioStatus.playing) audioPlayer.pause(); else void playRecitation(); }} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : audioLoading ? 'loader' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
+              <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
             </View>
-          }
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={READER_VIEWABILITY_CONFIG}
-          onScrollToIndexFailed={({ index, averageItemLength }) => {
-            readerListRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
-            setTimeout(() => readerListRef.current?.scrollToIndex({ index, animated: false }), 50);
-          }}
-          renderItem={({ item, index }) => (
-            <View style={[styles.verseRow, { backgroundColor: colors.strongSurface, borderBottomColor: colors.border }]}>
-              <Text style={[styles.verseNumber, { color: colors.gold }]}>{index + 1}</Text>
-              <Text style={[styles.verseText, { color: colors.primaryForeground, fontSize: quranTextSize, lineHeight: Math.round(quranTextSize * 1.8) }]}>{item}</Text>
-            </View>
-          )}
-          ListFooterComponent={
-            <View style={[styles.readerFooter, { backgroundColor: colors.strongSurface }]}>
-              <Text style={[styles.readerFooterText, { color: colors.deepMuted }]}>{selected.verses} آية</Text><Text style={[styles.readerFooterText, { color: colors.deepMuted }]}>{selected.type}</Text>
-            </View>
-          }
-        />
+          </View>
+          <FlatList<number>
+            ref={readerListRef}
+            data={Array.from({ length: QURAN_PAGES.pageCount }, (_, index) => index + 1)}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={windowWidth}
+            decelerationRate="fast"
+            initialNumToRender={3}
+            maxToRenderPerBatch={3}
+            windowSize={5}
+            keyExtractor={(page) => `quran-page-${page}`}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={READER_VIEWABILITY_CONFIG}
+            onScrollToIndexFailed={({ index, averageItemLength }) => {
+              readerListRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
+              setTimeout(() => readerListRef.current?.scrollToIndex({ index, animated: false }), 50);
+            }}
+            renderItem={({ item: page }) => {
+              const entries = QURAN_PAGES.pages[String(page)] ?? [];
+              const juz = entries[0]?.juz ?? 1;
+              const segments: QuranPageEntry[][] = [];
+              entries.forEach((entry) => {
+                const last = segments[segments.length - 1];
+                if (last && last[0].surah === entry.surah) last.push(entry);
+                else segments.push([entry]);
+              });
+
+              return (
+                <View style={[styles.mushafPage, { width: windowWidth - 24, marginHorizontal: 12, backgroundColor: colors.strongSurface, borderColor: colors.border }]}>
+                  <View style={[styles.mushafPageMeta, { borderBottomColor: colors.border }]}>
+                    <Text style={[styles.mushafMetaText, { color: colors.gold }]}>الجزء {toArabicDigits(juz)}</Text>
+                    <Text style={[styles.mushafMetaText, { color: colors.deepMuted }]}>صفحة {toArabicDigits(page)} / {toArabicDigits(QURAN_PAGES.pageCount)}</Text>
+                  </View>
+                  {segments.map((segment, segmentIndex) => {
+                    const surahNumber = segment[0].surah;
+                    const surah = surahs.find((item) => Number(item.id.replace('surah-', '')) === surahNumber);
+                    const startsSurah = segment[0].ayah === 1;
+                    const text = segment.map((entry) => {
+                      let verse = QURAN_VERSES[String(surahNumber)]?.[entry.ayah - 1] ?? '';
+                      if (entry.ayah === 1 && surahNumber === 1) {
+                        return `${BASMALA_TEXT} ﴿${toArabicDigits(entry.ayah)}﴾`;
+                      }
+                      if (entry.ayah === 1 && surahNumber !== 9) verse = stripBasmalaPrefix(verse);
+                      return `${verse.trim()} ﴿${toArabicDigits(entry.ayah)}﴾`;
+                    }).join('  ');
+                    return (
+                      <View key={`${page}-${surahNumber}-${segmentIndex}`}>
+                        {startsSurah ? (
+                          <View style={[styles.surahBanner, { borderColor: colors.gold }]}>
+                            <Text style={[styles.surahBannerText, { color: colors.primaryForeground }]}>{surah?.name ?? ''}</Text>
+                          </View>
+                        ) : null}
+                        {startsSurah && surahNumber !== 9 && surahNumber !== 1 ? (
+                          <Text style={[styles.basmalaOnPage, { color: colors.primaryForeground }]}>{BASMALA_TEXT}</Text>
+                        ) : null}
+                        {text ? (
+                          <Text style={[styles.mushafText, { color: colors.primaryForeground, fontSize: quranTextSize, lineHeight: Math.round(quranTextSize * 1.9) }]}>
+                            {text}
+                          </Text>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            }}
+          />
+        </View>
       ) : <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
         <View style={styles.header}>
           <View>
@@ -438,16 +517,24 @@ const styles = StyleSheet.create({
   excerpt: { fontSize: 12, textAlign: 'right', marginTop: 5 },
   matchingVerses: { fontSize: 12, textAlign: 'right', marginTop: 5 },
   readerCard: { borderRadius: 22, padding: 17 },
+  reader: { flex: 1 },
+  backButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  backButtonText: { fontSize: 13, fontWeight: '700' },
   readerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   readerTitle: { alignItems: 'center' },
   readerSurah: { fontSize: 23, fontWeight: '700', fontFamily: 'Amiri_400Regular' },
   readerMeta: { fontSize: 11, marginTop: 3 },
   audioNote: { fontSize: 11, textAlign: 'right', marginTop: 10 },
-  verseList: { marginTop: 22 },
-  bismillah: { fontSize: 25, lineHeight: 44, textAlign: 'center', paddingVertical: 14, fontFamily: 'Amiri_400Regular' },
-  verseRow: { flexDirection: 'row-reverse', alignItems: 'flex-start', paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth },
-  verseNumber: { fontSize: 12, width: 22, textAlign: 'center', marginTop: 5 },
-  verseText: { fontSize: 22, lineHeight: 40, textAlign: 'right', flex: 1, fontFamily: 'Amiri_400Regular' },
+  mushafPage: { marginTop: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 17, paddingVertical: 12, minHeight: 360 },
+  mushafPageMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, paddingBottom: 8 },
+  mushafMetaText: { fontSize: 11, textAlign: 'center', minWidth: 70 },
+  mushafPageTitle: { fontSize: 12, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
+  surahBanner: { alignSelf: 'center', marginTop: 10, borderTopWidth: 1, borderBottomWidth: 1, paddingHorizontal: 30, paddingVertical: 4 },
+  surahBannerText: { fontSize: 21, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
+  basmalaOnPage: { fontSize: 25, lineHeight: 44, textAlign: 'center', paddingTop: 8, fontFamily: 'Amiri_400Regular' },
+  mushafText: { textAlign: 'justify', writingDirection: 'rtl', fontFamily: 'Amiri_400Regular', paddingTop: 10 },
+  mushafPageFooter: { alignItems: 'center', marginTop: 16, paddingTop: 8 },
+  mushafFooterText: { fontSize: 11 },
   readerFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
   readerFooterText: { fontSize: 11 },
 });
