@@ -205,6 +205,7 @@ export default function QuranScreen() {
   const { surah: requestedSurah } = useLocalSearchParams<{ surah?: string }>();
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const readerListRef = useRef<FlatList<number>>(null);
   const { width: windowWidth } = useWindowDimensions();
   const saveVerseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -257,33 +258,35 @@ export default function QuranScreen() {
     if (!selectedId) return;
     const resumeVerse = selectedId === lastReadSurah ? lastReadVerse : 0;
     if (selectedId !== lastReadSurah) setLastReadSurah(selectedId);
-    requestAnimationFrame(() => {
-      const surahNumber = Number(selectedId.replace('surah-', ''));
-      const firstPage = Object.keys(QURAN_PAGES.pages)
+    const surahNumber = Number(selectedId.replace('surah-', ''));
+    const firstPage = Object.keys(QURAN_PAGES.pages)
+      .map(Number)
+      .find((page) => QURAN_PAGES.pages[String(page)].some((entry) => entry.surah === surahNumber));
+    let targetPage = firstPage ?? 1;
+    if (resumeVerse > 0) {
+      const resumePage = Object.keys(QURAN_PAGES.pages)
         .map(Number)
-        .find((page) => QURAN_PAGES.pages[String(page)].some((entry) => entry.surah === surahNumber));
-      if (resumeVerse > 0) {
-        const resumePage = Object.keys(QURAN_PAGES.pages)
-          .map(Number)
-          .find((page) => QURAN_PAGES.pages[String(page)].some((entry) =>
-            entry.surah === surahNumber && entry.ayah - 1 === resumeVerse,
-          ));
-        if (resumePage) readerListRef.current?.scrollToIndex({ index: resumePage - 1, animated: false });
-        else if (firstPage) readerListRef.current?.scrollToIndex({ index: firstPage - 1, animated: false });
-      } else if (firstPage) {
-        readerListRef.current?.scrollToIndex({ index: firstPage - 1, animated: false });
-      }
+        .find((page) => QURAN_PAGES.pages[String(page)].some((entry) =>
+          entry.surah === surahNumber && entry.ayah - 1 === resumeVerse,
+        ));
+      if (resumePage) targetPage = resumePage;
+    }
+    setCurrentPage(targetPage);
+    requestAnimationFrame(() => {
+      readerListRef.current?.scrollToIndex({ index: targetPage - 1, animated: false });
     });
-  }, [selectedId]);
+  }, [selectedId, lastReadSurah, lastReadVerse, setLastReadSurah, windowWidth]);
   const onViewableItemsChanged = useCallback(({ viewableItems }: {
-    viewableItems: Array<{ index?: number | null }>;
+    viewableItems: Array<{ index?: number | null; item?: number }>;
     changed: Array<{ index?: number | null }>;
   }) => {
     const firstVisible = viewableItems[0]?.index;
-    if (typeof firstVisible !== 'number') return;
+    const firstPage = viewableItems[0]?.item;
+    if (typeof firstVisible !== 'number' || typeof firstPage !== 'number') return;
     if (saveVerseTimeoutRef.current) clearTimeout(saveVerseTimeoutRef.current);
     saveVerseTimeoutRef.current = setTimeout(() => {
-      const pageNumber = firstVisible + 1;
+      const pageNumber = firstPage;
+      setCurrentPage(pageNumber);
       const entries = QURAN_PAGES.pages[String(pageNumber)] ?? [];
       const firstEntry = entries[0];
       if (firstEntry) {
@@ -325,6 +328,14 @@ export default function QuranScreen() {
       console.warn('Quran audio playback failed:', error);
     }
   };
+  const currentPageEntries = QURAN_PAGES.pages[String(currentPage)] ?? [];
+  const currentPageSurahNumber = currentPageEntries[0]?.surah;
+  const currentPageSurah = surahs.find((item) => Number(item.id.replace('surah-', '')) === currentPageSurahNumber);
+  const navigateToPage = (page: number) => {
+    const target = Math.max(1, Math.min(QURAN_PAGES.pageCount, page));
+    setCurrentPage(target);
+    readerListRef.current?.scrollToIndex({ index: target - 1, animated: true });
+  };
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       {selected ? (
@@ -336,21 +347,31 @@ export default function QuranScreen() {
                 <Text style={[styles.backButtonText, { color: colors.primaryForeground }]}>رجوع</Text>
               </Pressable>
               <View style={styles.readerTitle}>
-                <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{selected.name}</Text>
-                <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>{selected.english} · {selected.verses} آيات</Text>
+                <Text style={[styles.readerSurah, { color: colors.primaryForeground }]}>{currentPageSurah?.name ?? selected.name}</Text>
+                <Text style={[styles.readerMeta, { color: colors.deepMuted }]}>صفحة {toArabicDigits(currentPage)} · {currentPageSurah?.english ?? selected.english}</Text>
               </View>
-              <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : audioLoading ? 'جارٍ تحميل التلاوة' : 'تشغيل تلاوة السورة'} onPress={() => { if (audioStatus.playing) audioPlayer.pause(); else void playRecitation(); }} hitSlop={12}><Feather name={audioStatus.playing ? 'pause' : audioLoading ? 'loader' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
-              <Pressable accessibilityRole="button" accessibilityLabel={isBookmarked(selected.id) ? 'إزالة السورة من المحفوظات' : 'حفظ السورة'} onPress={() => { void Haptics.selectionAsync(); toggleBookmark(selected.id); }} hitSlop={12}><Feather name="bookmark" size={19} color={isBookmarked(selected.id) ? colors.gold : colors.mutedForeground} /></Pressable>
+              <View style={styles.readerActions}>
+                <Pressable accessibilityRole="button" accessibilityLabel="الصفحة السابقة" disabled={currentPage <= 1} onPress={() => navigateToPage(currentPage - 1)} hitSlop={8} style={styles.pageNavButton}><Feather name="chevron-right" size={17} color={currentPage <= 1 ? colors.deepMuted : colors.gold} /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel={audioStatus.playing ? 'إيقاف تلاوة السورة' : audioLoading ? 'جارٍ تحميل التلاوة' : 'تشغيل تلاوة السورة'} onPress={() => { if (audioStatus.playing) audioPlayer.pause(); else void playRecitation(); }} hitSlop={8}><Feather name={audioStatus.playing ? 'pause' : audioLoading ? 'loader' : 'volume-2'} size={19} color={colors.gold} /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel="الصفحة التالية" disabled={currentPage >= QURAN_PAGES.pageCount} onPress={() => navigateToPage(currentPage + 1)} hitSlop={8} style={styles.pageNavButton}><Feather name="chevron-left" size={17} color={currentPage >= QURAN_PAGES.pageCount ? colors.deepMuted : colors.gold} /></Pressable>
+              </View>
             </View>
           </View>
           <FlatList<number>
             ref={readerListRef}
             data={Array.from({ length: QURAN_PAGES.pageCount }, (_, index) => index + 1)}
             horizontal
+            inverted
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             snapToInterval={windowWidth}
             decelerationRate="fast"
+            initialScrollIndex={Math.max(0, currentPage - 1)}
+            getItemLayout={(_, index) => ({
+              length: windowWidth,
+              offset: index * windowWidth,
+              index,
+            })}
             initialNumToRender={3}
             maxToRenderPerBatch={3}
             windowSize={5}
@@ -521,6 +542,8 @@ const styles = StyleSheet.create({
   backButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   backButtonText: { fontSize: 13, fontWeight: '700' },
   readerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  readerActions: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  pageNavButton: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   readerTitle: { alignItems: 'center' },
   readerSurah: { fontSize: 23, fontWeight: '700', fontFamily: 'Amiri_400Regular' },
   readerMeta: { fontSize: 11, marginTop: 3 },
