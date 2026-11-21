@@ -31,9 +31,6 @@ export default function DuaReaderScreen() {
           </View>
           <View style={[styles.icon, { backgroundColor: colors.secondary }]}><Feather name="heart" size={19} color={colors.primary} /></View>
         </View>
-        <View style={[styles.notice, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-          <Text style={[styles.noticeText, { color: colors.deepMuted }]}>المصدر النصي: سجلات ShiaCompanion العربية. النص قيد مراجعة شخص مؤهل.</Text>
-        </View>
         <View style={[styles.reader, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.body, { color: colors.deep }]}>{body}</Text>
         </View>
@@ -51,8 +48,6 @@ const styles = StyleSheet.create({
   eyebrow: { textAlign: 'right', fontSize: 12 },
   title: { textAlign: 'right', fontSize: 27, fontWeight: '700', marginTop: 6 },
   icon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  notice: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 16 },
-  noticeText: { textAlign: 'right', fontSize: 12, lineHeight: 19 },
   reader: { borderWidth: 1, borderRadius: 18, padding: 18 },
   body: { textAlign: 'right', fontSize: 20, lineHeight: 40 },
 });

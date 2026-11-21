@@ -48,11 +48,6 @@ export default function DuasScreen() {
           <Text style={styles.introTranslation}>واجعل لسانك عامراً بذكر الله</Text>
           <View style={styles.introFooter}><Feather name="sun" size={14} color="#E8C77D" /><Text style={styles.introSource}>الكهف · ٢٤</Text></View>
         </View>
-        <View style={[styles.notice, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-          <Text style={[styles.noticeTitle, { color: colors.deep }]}>المصدر وحالة المراجعة</Text>
-          <Text style={[styles.noticeText, { color: colors.deepMuted }]}>المصدر النصي: سجلات ShiaCompanion العربية، مع إحالات مفاتيح الجنان وal-islam.org حيث تنطبق. هذه النصوص قيد مراجعة شخص مؤهل، فلا تُعرض كمحتوى موثّق بعد.</Text>
-        </View>
-
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.filters, { flexDirection: 'row-reverse' }]}>
           {categories.map((category) => (
             <Pressable accessibilityRole="tab" accessibilityLabel={`عرض أدعية ${category}`} key={category} onPress={() => setActiveCategory(category)} style={[styles.filter, { backgroundColor: activeCategory === category ? colors.primary : colors.card, borderColor: activeCategory === category ? colors.primary : colors.border }]}>
@@ -94,9 +89,6 @@ export default function DuasScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
-  notice: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 16 },
-  noticeTitle: { textAlign: 'right', fontSize: 13, fontWeight: '700' },
-  noticeText: { textAlign: 'right', fontSize: 12, lineHeight: 19, marginTop: 4 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
   eyebrow: { textAlign: 'right', fontSize: 12 },
   title: { fontSize: 28, fontWeight: '700', textAlign: 'right', marginTop: 6 },
