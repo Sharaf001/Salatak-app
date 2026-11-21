@@ -19,11 +19,13 @@ entry there.
 
 ## Audio
 
-- Abather Al-Halwaji dua recordings: Internet Archive collection
-  [duas-abather-al-halwachi](https://archive.org/details/duas-abather-al-halwachi);
-  exact file URLs and reciter attribution are in
-  `artifacts/salatak/data/dua-audio.ts`. Verify redistribution permission
-  before release.
+- Dua recordings: only the exact public-domain matches currently enabled are
+  Dua al-Sabah and Dua Kumayl. Their Internet Archive collection licenses are
+  recorded in `artifacts/salatak/data/dua-audio.ts`. Other entries remain
+  disabled because their redistribution permission has not been verified.
+  Before enabling another recording, add it to
+  `artifacts/salatak/data/dua-audio.ts` with one of the approved license forms
+  and the corresponding contract or license URL.
 - Quran audio: Islamic Network/Al Quran Cloud URLs are defined in
   `artifacts/salatak/app/(tabs)/quran.tsx`; confirm current redistribution
   terms before each store release.

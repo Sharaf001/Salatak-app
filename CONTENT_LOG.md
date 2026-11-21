@@ -11,7 +11,7 @@ means the asset is not approved for release.
 | Fallback duas, azkar, and ziyarat | `artifacts/salatak/data/religious-content.ts` | Local fallback copy; entries overridden by `religious-texts.json` where available | Review required; source attribution pending per entry | Pending | Pending | Not signed off |
 | Hijri occasions | `artifacts/salatak/data/islamic-occasions.ts` | Maintained calendar data | Review by qualified local authority | Pending | Pending | Not signed off |
 | Prayer method notes and labels | `artifacts/salatak/hooks/usePrayerTimes.ts`, `artifacts/salatak/hooks/prayerCalculator.ts` | Tehran/Qom calculation assumptions documented in source | Review by qualified prayer-times authority | Pending | Pending | Not signed off |
-| Dua recordings, all listed files | `artifacts/salatak/data/dua-audio.ts` | Internet Archive collection linked in `SOURCES.md` | Redistribution permission required | Pending | Pending | Not signed off |
+| Dua recordings | `artifacts/salatak/data/dua-audio.ts` | Dua al-Sabah and Dua Kumayl from verified Public Domain Mark collections; other entries not enabled | Public Domain Mark 1.0 | Pending | Pending | Not signed off |
 | Quran recordings | `artifacts/salatak/app/(tabs)/quran.tsx` | Islamic Network / Al Quran Cloud | Confirm current redistribution terms | Pending | Pending | Not signed off |
 | Wallpaper `wp-1` | `artifacts/salatak/assets/wallpapers/wp-1.jpg` | Wikimedia Commons; details in `wallpaperCredits.ts` | Public domain | Pending | Pending | Not signed off |
 | Wallpaper `wp-2` | `artifacts/salatak/assets/wallpapers/wp-2.jpg` | Wikimedia Commons; details in `wallpaperCredits.ts` | CC BY-SA 4.0 | Pending | Pending | Not signed off |

@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Added release gates for typecheck, tests, Expo Doctor, and Expo dependency checks.
-- Added Arabic dua playback with source and reciter attribution.
+- Disabled unverified Dua recordings; playback requires written permission or a documented open/commercial-use license.
 
 ## 1.0.0
 
