@@ -13,7 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { setAudioModeAsync, setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
 import quranPages from '@/data/quran-pages.json';
@@ -250,10 +250,10 @@ export default function QuranScreen() {
     [query, surahs],
   );
   const selected = surahs.find((surah) => surah.id === selectedId);
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     setQuranReaderActive(Boolean(selectedId));
     return () => setQuranReaderActive(false);
-  }, [selectedId]);
+  }, [selectedId]));
   useEffect(() => {
     if (typeof requestedSurah === 'string' && surahs.some((surah) => surah.id === requestedSurah)) {
       setSelectedId(requestedSurah);
@@ -341,13 +341,17 @@ export default function QuranScreen() {
     setCurrentPage(target);
     readerListRef.current?.scrollToIndex({ index: target - 1, animated: true });
   };
+  const exitReader = () => {
+    setQuranReaderActive(false);
+    setSelectedId(null);
+  };
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       {selected ? (
         <View style={[styles.reader, { backgroundColor: colors.background }]}>
           <View style={[styles.readerCard, { backgroundColor: colors.strongSurface }]}>
             <View style={styles.readerHeader}>
-              <Pressable accessibilityRole="button" accessibilityLabel="العودة إلى قائمة السور" onPress={() => setSelectedId(null)} hitSlop={12} style={styles.backButton}>
+              <Pressable accessibilityRole="button" accessibilityLabel="العودة إلى قائمة السور" onPress={exitReader} hitSlop={12} style={styles.backButton}>
                 <Feather name="chevron-right" size={18} color={colors.primaryForeground} />
                 <Text style={[styles.backButtonText, { color: colors.primaryForeground }]}>رجوع</Text>
               </Pressable>
@@ -439,7 +443,7 @@ export default function QuranScreen() {
                           <Text style={[styles.basmalaOnPage, { color: '#000000' }]}>{BASMALA_TEXT}</Text>
                         ) : null}
                         {text ? (
-                          <Text style={[styles.mushafText, { color: '#000000', fontSize: quranTextSize, lineHeight: Math.round(quranTextSize * 1.9) }]}>
+                          <Text style={[styles.mushafText, { color: '#000000', fontSize: 22, lineHeight: 38 }]}>
                             {text}
                           </Text>
                         ) : null}
@@ -575,7 +579,7 @@ const styles = StyleSheet.create({
   surahBanner: { alignSelf: 'center', marginTop: 4, borderTopWidth: 1, borderBottomWidth: 1, paddingHorizontal: 24, paddingVertical: 1 },
   surahBannerText: { fontSize: 16, lineHeight: 24, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
   basmalaOnPage: { fontSize: 21, lineHeight: 36, textAlign: 'center', paddingTop: 4, fontFamily: 'Amiri_400Regular' },
-  mushafText: { textAlign: 'justify', writingDirection: 'rtl', fontFamily: 'Amiri_400Regular', paddingTop: 10 },
+  mushafText: { textAlign: 'justify', writingDirection: 'rtl', fontFamily: 'Amiri_400Regular', paddingTop: 6 },
   mushafPageFooter: { alignItems: 'center', marginTop: 16, paddingTop: 8 },
   mushafFooterText: { fontSize: 11 },
   readerFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
