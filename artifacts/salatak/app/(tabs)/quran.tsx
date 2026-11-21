@@ -427,7 +427,7 @@ export default function QuranScreen() {
                   height: Math.max(windowHeight - insets.top - insets.bottom - 150, 360),
                   marginHorizontal: 12,
                   backgroundColor: '#FFFFFF',
-                  borderColor: '#D9D6CE',
+                  borderWidth: 0,
                 },
               ];
               const pageContent = (
@@ -451,7 +451,7 @@ export default function QuranScreen() {
                     return (
                       <View key={`${page}-${surahNumber}-${segmentIndex}`}>
                         {startsSurah ? (
-                          <View style={[styles.surahBanner, { borderColor: colors.gold }]}>
+                          <View style={styles.surahBanner}>
                             <Text style={[styles.surahBannerText, { color: '#000000' }]}>{surah?.name ?? ''}</Text>
                           </View>
                         ) : null}
@@ -606,12 +606,12 @@ const styles = StyleSheet.create({
   readerMeta: { fontSize: 10, lineHeight: 14, marginTop: 1 },
   audioNote: { fontSize: 11, textAlign: 'right', marginTop: 10 },
   mushafSlider: { flex: 1 },
-  mushafPage: { marginTop: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 17, paddingVertical: 12 },
+  mushafPage: { marginTop: 12, borderRadius: 18, borderWidth: 0, paddingHorizontal: 17, paddingVertical: 12 },
   mushafPageContent: { paddingBottom: 18 },
-  mushafPageMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, paddingBottom: 8 },
+  mushafPageMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0, paddingBottom: 8 },
   mushafMetaText: { fontSize: 11, textAlign: 'center', minWidth: 70 },
   mushafPageTitle: { fontSize: 12, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
-  surahBanner: { alignSelf: 'center', marginTop: 4, borderTopWidth: 1, borderBottomWidth: 1, paddingHorizontal: 24, paddingVertical: 1 },
+  surahBanner: { alignSelf: 'center', marginTop: 4, borderWidth: 0, paddingHorizontal: 24, paddingVertical: 1 },
   surahBannerText: { fontSize: 16, lineHeight: 24, fontWeight: '700', textAlign: 'center', fontFamily: 'Amiri_400Regular' },
   basmalaOnPage: { fontSize: 21, lineHeight: 36, textAlign: 'center', paddingTop: 4, fontFamily: 'Amiri_400Regular' },
   mushafText: { textAlign: 'justify', writingDirection: 'rtl', fontFamily: 'Amiri_400Regular', paddingTop: 6 },
