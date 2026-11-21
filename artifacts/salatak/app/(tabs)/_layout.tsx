@@ -7,14 +7,16 @@ import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuranReaderActive } from '@/data/quran-reader-state';
 
 // IMPORTANT: iOS 26 uses NativeTabs for native tabs with liquid glass support.
 // NativeTabs intentionally does NOT use custom design tokens — liquid glass
 // is a system-level appearance provided by iOS and cannot be overridden.
 // Custom brand colors are applied only on the ClassicTabLayout path (older iOS / Android / web).
 function NativeTabLayout() {
+  const readerActive = useQuranReaderActive();
   return (
-    <NativeTabs>
+    <NativeTabs hidden={readerActive}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon
           sf={{ default: 'house', selected: 'house.fill' }}
@@ -39,6 +41,7 @@ function NativeTabLayout() {
 
 function ClassicTabLayout() {
   const colors = useColors();
+  const readerActive = useQuranReaderActive();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const isWeb = Platform.OS === 'web';
@@ -51,6 +54,7 @@ function ClassicTabLayout() {
       tabBarInactiveTintColor: colors.mutedForeground,
       headerShown: false,
       tabBarStyle: {
+        ...(readerActive ? { display: 'none' as const } : {}),
         position: 'absolute',
         left: isWeb ? 0 : 20,
         right: isWeb ? 0 : 20,

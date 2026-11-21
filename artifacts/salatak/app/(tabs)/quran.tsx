@@ -17,6 +17,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useSurahs } from '@workspace/api-client-react';
 import quranVerses from '@/data/quran-verses.json';
 import quranPages from '@/data/quran-pages.json';
+import { setQuranReaderActive } from '@/data/quran-reader-state';
 import { useColors } from '@/hooks/useColors';
 import { useSalatak } from '@/providers/SalatakProvider';
 
@@ -250,6 +251,10 @@ export default function QuranScreen() {
   );
   const selected = surahs.find((surah) => surah.id === selectedId);
   useEffect(() => {
+    setQuranReaderActive(Boolean(selectedId));
+    return () => setQuranReaderActive(false);
+  }, [selectedId]);
+  useEffect(() => {
     if (typeof requestedSurah === 'string' && surahs.some((surah) => surah.id === requestedSurah)) {
       setSelectedId(requestedSurah);
     }
@@ -394,7 +399,7 @@ export default function QuranScreen() {
               });
 
               return (
-                <View style={[styles.mushafPage, { width: windowWidth - 24, marginHorizontal: 12, backgroundColor: colors.strongSurface, borderColor: colors.border }]}>
+                <View style={[styles.mushafPage, { width: windowWidth - 24, marginHorizontal: 12, backgroundColor: '#FFFFFF', borderColor: '#D9D6CE' }]}>
                   <View style={[styles.mushafPageMeta, { borderBottomColor: colors.border }]}>
                     <Text style={[styles.mushafMetaText, { color: colors.gold }]}>الجزء {toArabicDigits(juz)}</Text>
                     <Text style={[styles.mushafMetaText, { color: colors.deepMuted }]}>صفحة {toArabicDigits(page)} / {toArabicDigits(QURAN_PAGES.pageCount)}</Text>
@@ -415,14 +420,14 @@ export default function QuranScreen() {
                       <View key={`${page}-${surahNumber}-${segmentIndex}`}>
                         {startsSurah ? (
                           <View style={[styles.surahBanner, { borderColor: colors.gold }]}>
-                            <Text style={[styles.surahBannerText, { color: colors.primaryForeground }]}>{surah?.name ?? ''}</Text>
+                            <Text style={[styles.surahBannerText, { color: '#000000' }]}>{surah?.name ?? ''}</Text>
                           </View>
                         ) : null}
                         {startsSurah && surahNumber !== 9 && surahNumber !== 1 ? (
-                          <Text style={[styles.basmalaOnPage, { color: colors.primaryForeground }]}>{BASMALA_TEXT}</Text>
+                          <Text style={[styles.basmalaOnPage, { color: '#000000' }]}>{BASMALA_TEXT}</Text>
                         ) : null}
                         {text ? (
-                          <Text style={[styles.mushafText, { color: colors.primaryForeground, fontSize: quranTextSize, lineHeight: Math.round(quranTextSize * 1.9) }]}>
+                          <Text style={[styles.mushafText, { color: '#000000', fontSize: quranTextSize, lineHeight: Math.round(quranTextSize * 1.9) }]}>
                             {text}
                           </Text>
                         ) : null}
